@@ -1,13 +1,20 @@
 %% Main script for BEHAV analysis of the POTT dataset
+%- juice transitivity is in POTT_SPK_023_LDA_FINAL!!!
 
 %- to do:
 %- update behav files with t_FPon... Can't compute the initiation time otherwise  // ADDED, just have to re-run all
 %- update behav files mimic with Dynamic task juice info (for prevJuice) // DONE
 %- check if dispersion flag should be true for main model, it is now for sliding window one.....
+
+%- Author: Fred M. Stoll, Icahn School of Medicine at Mount Sinai, NY
+%- Date: 2022.12
+
+
+
 % clear
 % path2go = utils_POTT_SPKfolder('MIMIC2')
 % path2copy = 'C:\Users\Fred\Dropbox\Rudebeck Lab\ANA-POTT-BehavPrefChange\data\'
-% 
+%
 % list = dir([path2go 'X*a_behav.mat']);
 % for i = 1 : length(list)
 %     disp(i)
@@ -17,50 +24,53 @@
 
 clear
 
-mk = 'Mimic'; % 'Morbier'
+skip = true;
 
-%- locate the files
-path2go = ('C:\Users\Fred\Dropbox\Rudebeck Lab\ANA-POTT-BehavPrefChange\data\')
-%path2go = ('/Users/Fred/Dropbox/Rudebeck Lab/ANA-POTT-BehavPrefChange/data/')
+if ~skip
+    mk = 'Mimic'; % 'Morbier'
 
-%- list all the files
-if strcmp(mk(1:2),'Mi')
-    list = dir([path2go 'X*a_behav.mat']);
-else
-    list = dir([path2go 'M*a_behav.mat']);
-end
+    %- locate the files
+    path2go = ('C:\Users\Fred\Dropbox\Rudebeck Lab\ANA-POTT-BehavPrefChange\data\')
+    %path2go = ('/Users/Fred/Dropbox/Rudebeck Lab/ANA-POTT-BehavPrefChange/data/')
 
-perm = false;
-nPerm = 50;
-showfig = false;
-
-%- reorganize list by date
-days = [];
-for ss = 1 : length(list)
-    days = [days;datenum(list(ss).name(2:7),'mmddyy') , ss];
-end
-date_order = sortrows(days);
-list = list(date_order(:,2));
-
-for sess = 1 : length(list) % for every sessions
-    filename = [path2go list(sess).name];
-
-    [ALL(sess,1),param] = behav_model(filename,false,showfig); %- no permutations
-    
-    if perm
-        for p = 1 : nPerm
-            [ALLperm(sess,p),~] = behav_model(filename,perm,showfig);
-        end
+    %- list all the files
+    if strcmp(mk(1:2),'Mi')
+        list = dir([path2go 'X*a_behav.mat']);
+    else
+        list = dir([path2go 'M*a_behav.mat']);
     end
-    
-end
-if perm
-    % save([path2go mk '_behav_norm_DEVAL_prevJuice_ft.mat'],'ALL','ALLperm','param','-v7.3')
-    save([path2go mk '_behav_norm_ALL_prevJuice_ft.mat'],'ALL','ALLperm','param','-v7.3')
-else
-    save([path2go mk '_behav_norm_ALL_prevJuice_ft.mat'],'ALL','param','-v7.3')
-end
 
+    perm = false;
+    nPerm = 50;
+    showfig = false;
+
+    %- reorganize list by date
+    days = [];
+    for ss = 1 : length(list)
+        days = [days;datenum(list(ss).name(2:7),'mmddyy') , ss];
+    end
+    date_order = sortrows(days);
+    list = list(date_order(:,2));
+
+    for sess = 1 : length(list) % for every sessions
+        filename = [path2go list(sess).name];
+
+        [ALL(sess,1),param] = behav_model(filename,false,showfig); %- no permutations
+
+        if perm
+            for p = 1 : nPerm
+                [ALLperm(sess,p),~] = behav_model(filename,perm,showfig);
+            end
+        end
+
+    end
+    if perm
+        % save([path2go mk '_behav_norm_DEVAL_prevJuice_ft.mat'],'ALL','ALLperm','param','-v7.3')
+        save([path2go mk '_behav_norm_ALL_prevJuice_ft.mat'],'ALL','ALLperm','param','-v7.3')
+    else
+        save([path2go mk '_behav_norm_ALL_prevJuice_ft.mat'],'ALL','param','-v7.3')
+    end
+end
 
 %% POTT - Behavioral analyses and Figure 1
 
@@ -183,6 +193,13 @@ xlabel('Estimates')
 xlim([-20 20])
 ylim([0 length( ALL(1).mdl.CoefficientNames)])
 
+%% 
+
+
+
+
+
+
 
 
 %% look at choice consistency in same juice trials for the different preferences
@@ -213,6 +230,7 @@ for m = 1 : 2
 end
 
 %% show juice preference for both monkey (Fig 4A)
+%- juice transitivity is in POTT_SPK_023_LDA_FINAL!!!
 figure;
 for m = 1 : 2
     clear converge tStat pVal Estimate r_adj LogLik nTr keep
