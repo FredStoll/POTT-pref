@@ -4,6 +4,9 @@
 # OSX / *nix default autosave extension
 *.m~
 
+#ppt
+*.pptx
+
 # Compiled MEX binaries (all platforms)
 *.mex*
 
