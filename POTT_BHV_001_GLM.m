@@ -75,12 +75,15 @@ end
 %% POTT - Behavioral analyses and Figure 1
 
 clear
-cd('C:\Users\Fred\Dropbox\Rudebeck Lab\ANA-POTT-BehavPrefChange\data\')
-%cd('/Users/fred/Dropbox/Rudebeck Lab/ANA-POTT-BehavPrefChange/data/')
+%cd('C:\Users\Fred\Dropbox\Rudebeck Lab\ANA-POTT-BehavPrefChange\data\')
+cd('/Users/fred/Dropbox/Rudebeck Lab/ANA-POTT-BehavPrefChange/data/')
 %cd('\\10.81.115.14\fred\POTT\data\behav')
 
-M1 = load('Morbier_behav_norm_ALL_prevJuice_only.mat','ALL','param')
-M2 = load('Mimic_behav_norm_ALL_prevJuice_only.mat','ALL','param')
+%M1 = load('Morbier_behav_norm_ALL_prevJuice_only.mat','ALL','param')
+%M2 = load('Mimic_behav_norm_ALL_prevJuice_only.mat','ALL','param')
+
+M1 = load('Morbier_behav_bins.mat','ALL','param')
+M2 = load('Mimic_behav_bins.mat','ALL','param')
 
 thr_trend = 0.05;
 
@@ -96,6 +99,7 @@ else
     takeme = true(1,length(M1.ALL));
 end
 M1.ALL = M1.ALL(takeme);
+M1.param = M1.param(takeme);
 
 
 %- save a matrix with the names of the considered sessions + converge model
@@ -113,7 +117,7 @@ for m = 1 : 2
     end
 end
 
-save('Sessions.mat','behav_sess')
+% save('Sessions.mat','behav_sess')
 
 
 %% Fig 1B - Behav model R squared + Estimates
@@ -306,7 +310,8 @@ for m = 1:2
     line([0 0],[-15 15],'Color','k');
     hold on
     line([-0.5 0.5],[0 0],'Color','k'); box on;
-    ref_length = 50;
+    % ref_length = 50; %- use 50 when bin size 30
+    ref_length = 10;
     colors = cbrewer('qual', 'Paired', 10);
 
     clear devia_ref Z_trend p_trend converge
@@ -365,7 +370,6 @@ subplot(2,1,m);
 line([0 0],[-15 15],'Color','k');
 hold on
 line([-0.5 0.5],[0 0],'Color','k'); box on;
-ref_length = 50;
 colors = cbrewer('qual', 'Paired', 10);
 
 clear devia_ref Z_trend p_trend converge
@@ -424,7 +428,6 @@ subplot(2,1,m);
 line([0 0],[-15 15],'Color','k');
 hold on
 line([-0.5 0.5],[0 0],'Color','k'); box on;
-ref_length = 50;
 colors = cbrewer('qual', 'Paired', 10);
 
 clear devia_ref Z_trend p_trend converge
@@ -483,7 +486,6 @@ subplot(2,1,m);
 line([0 0],[-15 15],'Color','k');
 hold on
 line([-0.5 0.5],[0 0],'Color','k'); box on;
-ref_length = 50;
 colors = cbrewer('qual', 'Paired', 10);
 
 clear devia_ref Z_trend p_trend converge
@@ -664,4 +666,177 @@ xlabel('Z trend');ylabel('Corr Juice Pref vs Residuals')
 
 
 
+%% extract period of preference
+changed_all = [];
+changed_all_venn = [];
 
+figure;
+thr_sd_all = [1 2 2.5 3 3.5 4 4.5 5];
+binsz_fact_all = [3 4 5 6 7 8 9 10]
+for bb = 3%1 : length(binsz_fact_all)
+    for th = 3%1 : length(thr_sd_all)
+all_idxs = [];
+for m = 2
+    clear corrmat_all p_trend Z_trend
+    eval(['ALL = M' num2str(m) '.ALL;']);
+   changed=[];
+    
+    for d = 1 : size(ALL,1)
+        if ALL(d).converge
+
+
+           binsz = floor(length(ALL(d).pref_bins)/binsz_fact_all(bb));
+
+
+           ref = ALL(d).pref_bins(1:binsz);
+
+           pref_zsc = (ALL(d).pref_bins - mean(ref))/std(ref);
+           pref_zsc_smo = smooth(pref_zsc,10);
+           pref_zsc_smo = pref_zsc';
+           [idx,idxs_p] = findenough(pref_zsc_smo',thr_sd_all(th),binsz,'>=');
+           [idx,idxs_n] = findenough(pref_zsc_smo',-thr_sd_all(th),binsz,'<=');
+            if ~isempty(idxs_n) | ~isempty(idxs_p)
+                changed(d,:)=[true ALL(d).p_trend<0.05];
+
+                all_idxs = [all_idxs , idxs_p idxs_n];
+
+            else
+                changed(d,:)=[false ALL(d).p_trend<0.05];
+            end
+%            subplot(5,5,d);plot(pref_zsc);hold on ; plot(pref_zsc_smo)
+%             plot(idxs_p,pref_zsc_smo(idxs_p),'o')
+%             plot(idxs_n,pref_zsc_smo(idxs_n),'o')
+           subplot(10,20,d);plot(ALL(d).pref_bins);hold on ; 
+            plot(idxs_p,ALL(d).pref_bins(idxs_p),'.')
+           plot(idxs_n,ALL(d).pref_bins(idxs_n),'.')
+            ylim([0 1])
+        else
+            changed(d,:)=[NaN NaN];
+        end
+    end
+
+
+
+
+    end
+changed_all = [changed_all ; nanmean(changed)];
+changed_all_venn = [changed_all_venn ; sum(sum(changed,2)==2)/sum(changed(:,2)==true) sum(changed(:,1)==true)/sum(changed(:,2)==false)]
+%sum(sum(changed,2)==2)
+    end
+end
+plot(changed_all)
+figure;plot(changed_all_venn)
+figure;histogram(all_idxs) % important plot : show that bins with < or >Xsd are mostly at the end (although the 10 requirement makes it drop by defaults on the last bins)
+
+
+%% extract period of preference
+changed_all = [];
+changed_all_venn = [];
+
+thr_sd = 2.5 ;
+
+for m = 1 : 2
+    ttt=[];
+    all_idxs = [];
+    x = 0;pref_ch={};
+    clear corrmat_all p_trend Z_trend
+    eval(['ALL = M' num2str(m) '.ALL;']);
+    eval(['param = M' num2str(m) '.param;']);
+    converg = [ALL(:).converge];
+    ALL(~converg)=[];
+    param(~converg)=[];
+    changed=[];
+
+    for d = 1 : size(ALL,1)
+        if ALL(d).converge
+
+            binsz = floor(length(ALL(d).pref_bins)/5);
+            ref = ALL(d).pref_bins(1:binsz);
+
+            pref_zsc = (ALL(d).pref_bins - mean(ref))/std(ref);
+            [idx,idxs_p] = findenough(pref_zsc,thr_sd,binsz,'>=');
+            [idx,idxs_n] = findenough(pref_zsc,-thr_sd,binsz,'<=');
+            if ~isempty(idxs_n) | ~isempty(idxs_p)
+                changed(d,:)=[true ALL(d).p_trend<0.05];
+
+                %- for the very few sessions where pref goes both direction
+                %(~2 across both monkeys), keep the strongest avg change
+                if ~isempty(idxs_n) & ~isempty(idxs_p)
+                    if mean(pref_zsc(idxs_p)) > abs(mean(pref_zsc(idxs_n)))
+                        idxs_n=[];
+                    else
+                        idxs_p=[];
+                    end
+                end
+                all_idxs = [all_idxs , idxs_p idxs_n];
+
+                %- reconstruct the trials consider for each bins (start/end)
+                bins_tr = round(1:(height(ALL(d).T)-param(d).binSize)/50:height(ALL(d).T)-param(d).binSize);
+                bins_tr(2,:) = bins_tr(1,:) + param(d).binSize;
+
+                %- find trials for reference period
+                temp = bins_tr(:,1:binsz);
+                tr_temp = [];
+                for i = 1 : length(temp)
+                    tr_temp =  [tr_temp temp(1,i):temp(2,i)];
+                end
+                trref_temp = unique(tr_temp);
+
+                if ~isempty(idxs_n)
+                    pref_dir = [mean(ALL(d).pref_bins(1:binsz)) mean(ALL(d).pref_bins(idxs_n))];
+                    temp = bins_tr(:,idxs_n);
+                else
+                    pref_dir = [mean(ALL(d).pref_bins(1:binsz)) mean(ALL(d).pref_bins(idxs_p))];
+                    temp = bins_tr(:,idxs_p);
+                end
+                tr_temp = [];
+                for i = 1 : length(temp)
+                    tr_temp =  [tr_temp temp(1,i):temp(2,i)];
+                end
+                trpost_temp = unique(tr_temp);
+                
+                %- check if overlap in trial and remove then from both bins otherwise
+                trpost_temp_old = trpost_temp;
+                trpost_temp(ismember(trpost_temp,trref_temp))=[];
+                trref_temp(ismember(trref_temp,trpost_temp_old))=[];
+
+                %- put all that in matrix!
+                x = x + 1;
+                pref_ch{x,1} = ALL(d).name(end-17:end-10) ; %- session
+                pref_ch{x,2} = trref_temp; %- ref trials
+                pref_ch{x,3} = trpost_temp; %- ref trials
+                pref_ch{x,4} = pref_dir; %- pref in ref bins and post bins
+                ttt(x) = pref_dir(1)-pref_dir(2);
+            else
+                changed(d,:)=[false ALL(d).p_trend<0.05];
+            end
+            %            subplot(5,5,d);plot(pref_zsc);hold on ; plot(pref_zsc_smo)
+            %             plot(idxs_p,pref_zsc_smo(idxs_p),'o')
+            %             plot(idxs_n,pref_zsc_smo(idxs_n),'o')
+          %  subplot(10,20,d);plot(ALL(d).pref_bins);hold on ;
+          %  plot(idxs_p,ALL(d).pref_bins(idxs_p),'.')
+          %  plot(idxs_n,ALL(d).pref_bins(idxs_n),'.')
+          %  ylim([0 1])
+        else
+            changed(d,:)=[NaN NaN];
+        end
+    end
+
+all_idxs_mk{m} = all_idxs;
+pref_ch_mk{m} = pref_ch;
+nb_sess_mk(m) = sum([ALL(:).converge]);
+end
+
+colors = cbrewer('qual', 'Paired', 10);
+colors = colors([4 10],:)
+figure;
+for m = 1: 2
+    [a,b] = hist(all_idxs_mk{m},[1:1:50]) % important plot : show that bins with < or >Xsd are mostly at the end (although the 10 requirement makes it drop by defaults on the last bins)
+    plot(b/50,100*(a/nb_sess_mk(m)),'Color',colors(m,:),'LineWidth',2);hold on
+    ylabel('Percent of sessions')
+    xlabel('Normalized time in session')
+end
+set(gca,'FontSize',16)
+%figure;histogram(ttt,[-.5:.05:.5])
+
+save('Pref_bins.mat','pref_ch_mk')
