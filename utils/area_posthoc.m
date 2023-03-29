@@ -1,12 +1,6 @@
 function [pval,wald,thr,pval_adj] = area_posthoc(lme,area2test,fig2do)
 
 emm = emmeans(lme,{'area'});
-%- to correct for number of tests.. either nb of contrasts (15 if 6 areas)
-%- or nb of areas (6).. the latter is justifable given that you could run 1
-%- model for each area as a ref and get the difference between that area and
-%- all others without need for multiple comparison correction...
-% nb_contrasts = sum(1:length(area2test)-1);
-nb_contrasts = length(area2test);
 
 thr = .05;
 %h = emmip(emm,'area');
