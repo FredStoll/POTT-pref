@@ -249,6 +249,9 @@ save('C:\Users\Fred\Dropbox\Rudebeck Lab\ANA-POTT-BehavPrefChange\data\POTT_Subs
 
 
 %%
+clear
+load('C:\Users\Fred\Dropbox\Rudebeck Lab\ANA-POTT-BehavPrefChange\data\POTT_Subspace_angle.mat')
+
 order = [3 1 2 5 4 7];
 colorsArea = cbrewer('qual', 'Set2', 8);
 colorsArea = colorsArea(order,:);
@@ -271,6 +274,40 @@ set(gca,'YTick',1:length(area2test),'YTickLabel',area2test,'YTickLabelRotation',
 ylim([0 length(area2test)+1]);
 title('Proba vs Juice subspaces')
 xlabel('Angle (degree, 0 = parallel // 90 = orthogonal)')
+
+%- stats
+modeldata.angle = double(modeldata.angle);
+modeldata.angle_j12 = double(modeldata.angle_j12);
+models_form = {'angle ~ 1 + area  + (1|mk) + (1|session)' ; 'angle ~ 1 + area  + (1|mk)'};
+%[lme,model_final] = model_comparison(modeldata,models_form,false);
+lme = fitglme(modeldata,models_form{1}); model_final = models_form{1};
+
+[~,wald_angNeurons,thr_corr,pval_adj_angNeurons]  = area_posthoc(lme,area2test,'n');
+disp(['%%%%%%%%%% Angle of proba/juice with model = ' model_final ' %%%%%%%%%%'])
+disp(anova(lme));disp(pval_adj_angNeurons);disp(wald_angNeurons);
+disp('%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%')
+
+%- plot the significance
+pval2=[pval_adj_angNeurons , zeros(length(area2test),1)]+ [pval_adj_angNeurons' ; zeros(1,length(area2test))];
+for ar1  = 1 : length( area2test)
+    Xmax =max(theta(~isnan(theta(:,ar1)),ar1));
+    Xmin = min(theta(~isnan(theta(:,ar1)),ar1));
+    Xmean = mean(theta(~isnan(theta(:,ar1)),ar1));
+    updown=[1.5 2];
+    for ar2 = 1 : length(area2test)
+        Xmean2 = mean(theta(~isnan(theta(:,ar2)),ar2));
+        if ar1~=ar2 & pval2(ar1,ar2)<thr_corr & Xmean<Xmean2
+
+            text(Xmax+(updown(1)),ar1,'*','Color',colorsArea(ar2,:),'FontSize',20,'FontWeight','bold','HorizontalAlignment','center')
+            updown(1) = updown(1) + 2;
+        elseif ar1~=ar2 & pval2(ar1,ar2)<thr_corr & Xmean>Xmean2
+            text(Xmin-(updown(2)),ar1,'*','Color',colorsArea(ar2,:),'FontSize',20,'FontWeight','bold','HorizontalAlignment','center')
+            updown(2) = updown(2) + 2;
+        end
+    end
+end
+
+
 
 subplot(1,2,2)
 mm = 0;
@@ -296,26 +333,44 @@ median(modeldata.angle(ismember(modeldata.area,'LAI')))
 median(modeldata.angle(ismember(modeldata.area,'AMG')))
 median(modeldata.angle(ismember(modeldata.area,'IFG')))
 
-%- stats
-modeldata.angle = double(modeldata.angle);
-modeldata.angle_j12 = double(modeldata.angle_j12);
-models_form = {'angle ~ 1 + area  + (1|mk) + (1|session)' ; 'angle ~ 1 + area  + (1|mk)'};
-%[lme,model_final] = model_comparison(modeldata,models_form,false);
-lme = fitglme(modeldata,models_form{1}); model_final = models_form{1};
-
-[~,wald_angNeurons,~,pval_adj_angNeurons]  = area_posthoc(lme,area2test,'y');
-disp(['%%%%%%%%%% Angle of proba/juice with model = ' model_final ' %%%%%%%%%%'])
-disp(anova(lme));disp(pval_adj_angNeurons);disp(wald_angNeurons);
-disp('%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%')
 
 models_form = {'angle_j12 ~ 1 + area  + (1|mk) + (1|session)' ; 'angle_j12 ~ 1 + area  + (1|mk)'};
 %[lme,model_final] = model_comparison(modeldata,models_form,false);
 lme = fitglme(modeldata,models_form{1}); model_final = models_form{1};
 
-[~,wald_angpbNeurons,~,pval_adj_angpbNeurons]  = area_posthoc(lme,area2test,'y');
+[~,wald_angpbNeurons,thr_corr,pval_adj_angpbNeurons]  = area_posthoc(lme,area2test,'n');
 disp(['%%%%%%%%%% Angle of proba J1/proba J2 with model = ' model_final ' %%%%%%%%%%'])
 disp(anova(lme));disp(pval_adj_angpbNeurons);disp(wald_angpbNeurons);
 disp('%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%')
+
+
+%- plot the significance
+pval2=[pval_adj_angpbNeurons , zeros(length(area2test),1)]+ [pval_adj_angpbNeurons' ; zeros(1,length(area2test))];
+for ar1  = 1 : length( area2test)
+    Xmax =max(theta_j12(~isnan(theta_j12(:,ar1)),ar1));
+    Xmin = min(theta_j12(~isnan(theta_j12(:,ar1)),ar1));
+    Xmean = mean(theta_j12(~isnan(theta_j12(:,ar1)),ar1));
+    updown=[1.5 2];
+    for ar2 = 1 : length(area2test)
+        Xmean2 = mean(theta_j12(~isnan(theta_j12(:,ar2)),ar2));
+        if ar1~=ar2 & pval2(ar1,ar2)<thr_corr & Xmean<Xmean2
+
+            text(Xmax+(updown(1)),ar1,'*','Color',colorsArea(ar2,:),'FontSize',20,'FontWeight','bold','HorizontalAlignment','center')
+            updown(1) = updown(1) + 2;
+        elseif ar1~=ar2 & pval2(ar1,ar2)<thr_corr & Xmean>Xmean2
+            text(Xmin-(updown(2)),ar1,'*','Color',colorsArea(ar2,:),'FontSize',20,'FontWeight','bold','HorizontalAlignment','center')
+            updown(2) = updown(2) + 2;
+        end
+    end
+end
+
+
+
+
+
+
+
+
 
 %%
 

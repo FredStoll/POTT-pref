@@ -650,7 +650,7 @@ for m = 1 : 2
     end
 end
 
-modeldata = table(all_pref,all_converge,all_mk,all_days,'VariableNames',{'pref' 'converge' 'mk' 'session'})
+modeldata = table(all_pref,all_converge,all_mk,a ll_days,'VariableNames',{'pref' 'converge' 'mk' 'session'})
 modeldata(modeldata.converge==0,:)=[];
 
 
