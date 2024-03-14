@@ -98,6 +98,27 @@ if length(choice) > 100  %- trash sessions with less than 100 trials diff juice
     prevJuiceReceived = prevJuiceReceived(restr);
     prevJuiceReceived(prevJuiceReceived==0)=-1; %- a way to standardize it (-1 vs 1)
     
+
+    % model without juice info....
+    modelspec_alt = 'choice ~ 1 + probDiff + prevJuice' ; %- model 1 choice only based on comparison of proba
+    T = table(choice',pbJ1',pbJ2',(pbJ1-pbJ2)',ft',rt',prevJuice',prevJuiceReceived','VariableNames',{'choice','probJ1','probJ2','probDiff','ft','rt','prevJuice','prevJuiceReceived'});
+    T.choice=categorical(T.choice);
+    T.prevJuice=categorical(T.prevJuice);
+    T.prevJuiceReceived=categorical(T.prevJuiceReceived);
+    
+    %- 1st model
+    lastwarn('', '');
+    mdl_alt = fitglm(T,modelspec_alt,'Distribution','binomial','Link','logit');
+    %- check if glm converged
+    [~, warnId] = lastwarn();
+    if strcmp(warnId,'stats:glmfit:IterationLimit')
+        converge_alt=0;
+    else
+        converge_alt=1;
+    end
+    
+
+
     %- define model
     % modelspec = 'choice ~ 1 + probJ1*probJ2 + ft + prevJuice' ;
     modelspec = 'choice ~ 1 + probJ1*probJ2 + prevJuice' ;
@@ -152,6 +173,9 @@ if length(choice) > 100  %- trash sessions with less than 100 trials diff juice
             thr(i,1) = find(newf(i,:)>=0.5,1,'first');
         end
     end
+    %- make sure no 0 or 1 in the newf matrix:
+    newf(newf==0)=0.0000000000001;
+    newf(newf==1)=0.9999999999999; 
     
     %- extract the preference for J1 vs J2
     %- sensitivity doesn't take into account the interaction factor... so can use the nb of
@@ -160,10 +184,10 @@ if length(choice) > 100  %- trash sessions with less than 100 trials diff juice
     pref = sum(sum(newf<0.5))/(length(newf(:))-sum(sum(newf==0.5)));
     
     %- confidence (can use that as regressor of neuronal activity
-    conf=-newf.*log(newf)-(1-newf).*log(1-newf); %% define by amemori & graybiel 2012 last supp figure
+    conf=-newf.*log2(newf)-(1-newf).*log2(1-newf); %% define by amemori & graybiel 2012 last supp figure
     
     
-    clear sensitivity_bins pref_bins radj_bins ft_bins rt_bins mdl_bins resid
+    clear sensitivity_bins pref_bins radj_bins ft_bins rt_bins mdl_bins resid conf_bins
 %     bins = floor(height(T)/5);
 %     
 %         bins_start = 1:floor(height(T)-bins/12):height(T)-bins;
@@ -192,13 +216,18 @@ if length(choice) > 100  %- trash sessions with less than 100 trials diff juice
         try
             [newf_bins , ~] = predict(mdl_bins,tab_all);
             newf_bins = reshape(newf_bins,length(probas),length(probas));
+            newf_bins(newf_bins==0)=0.0000000000001;
+            newf_bins(newf_bins==1)=0.9999999999999; 
         end
         
         sensitivity_bins(b) = mdl_bins.Coefficients{'probJ1','Estimate'}/mdl_bins.Coefficients{'probJ2','Estimate'};
         if ~isempty(newf_bins)
             pref_bins(b) = sum(sum(newf_bins<0.5))/(length(newf_bins(:))-sum(sum(newf_bins==0.5)));
+            conf_bins{b} =-newf_bins.*log2(newf_bins)-(1-newf_bins).*log2(1-newf_bins); %% define by amemori & graybiel 2012 last supp figure
+
         else
             pref_bins(b) = NaN;
+            conf_bins{b} = [];
         end
         radj_bins(b) = mdl_bins.Rsquared.Adjusted;
     end
@@ -237,18 +266,20 @@ if length(choice) > 100  %- trash sessions with less than 100 trials diff juice
     nTr = 1:length(TrialType);
     diffIns_tr = nTr(restr);
     sameIns_tr = nTr(restr_same);
-    clear choice_consistency_bins ft_same_bins rt_same_bins
+    clear choice_consistency_bins ft_same_bins rt_same_bins conf_bins_Avg
     for b = 1 : length(bins_start)
         boundaries = diffIns_tr([bins_start(b) bins_start(b)+bins]);
         tr_bins = sameIns_tr>=boundaries(1) & sameIns_tr<=boundaries(2);
         choice_consistency_bins(b) = sum(chosenPb(tr_bins)>unchosenPb(tr_bins))/length(chosenPb(tr_bins));
         ft_same_bins(b) = median(ft_same(tr_bins));
         rt_same_bins(b) = median(rt_same(tr_bins));
+        conf_bins_avg(b)= sum(sum(conf_bins{b}))/(size(conf_bins{b},1)*size(conf_bins{b},1));
+
     end
     
     %%
-    mat_name = {'Residuals' 'Juice pref' 'IT' 'RT' 'IT same' 'RT same' 'Consistency same'};
-    mat = [resid ; pref_bins ; ft_bins ; rt_bins ; ft_same_bins ; rt_same_bins ; choice_consistency_bins];
+    mat_name = {'Residuals' 'Juice pref' 'Conf' 'IT' 'RT' 'IT same' 'RT same' 'Consistency same'};
+    mat = [resid ; pref_bins ; conf_bins_avg ; ft_bins ; rt_bins ; ft_same_bins ; rt_same_bins ; choice_consistency_bins];
     for p1 = 1 : length(mat(:,1))
         for p2 = 1 : length(mat(:,1))
             if p1>p2
@@ -264,7 +295,9 @@ if length(choice) > 100  %- trash sessions with less than 100 trials diff juice
     %% Extract param of interest for each session!
     ALL.name = filename;
     ALL.mdl = mdl;
+    ALL.mdl_alt = mdl_alt;
     ALL.converge = converge;
+    ALL.converge_alt = converge_alt;
     ALL.resid = resid;
     ALL.pref = pref;
     ALL.Z_trend = Z_trend;
@@ -275,6 +308,7 @@ if length(choice) > 100  %- trash sessions with less than 100 trials diff juice
     ALL.radj_bins = single(radj_bins);
     ALL.ft_bins = single(ft_bins);
     ALL.rt_bins = single(rt_bins);
+    ALL.conf_bins = conf_bins;
     ALL.choice_consistency_bins = single(choice_consistency_bins);
     ALL.ft_same_bins = single(ft_same_bins);
     ALL.rt_same_bins = single(rt_same_bins);

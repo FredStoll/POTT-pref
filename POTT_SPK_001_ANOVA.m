@@ -1,7 +1,9 @@
-%% ANOVA for POTT dataset
-
+%% POTT Pref - ANOVA for single neuron stimulus related activity
+%-
+%- 
 %- Author: Fred M. Stoll, Icahn School of Medicine at Mount Sinai, NY
 %- Date: 2023.03
+%- Related to: Stoll & Rudebeck, Neuron, 2024
 
 clear
 
@@ -84,7 +86,6 @@ for s = 1 : length(list)
             factors_INS(factors_INS(:,4)==2,4)=1; %- a way to standardize it (-1 vs 1)
             
             if length(tr2consider)>=150
-                % tr2consider = tr2consider(1:150);
                 
                 parfor n = 1 : size(neurons_rank,1)
                     disp(['Neuron ' num2str(n) '/' num2str(size(neurons_rank,1))])
@@ -126,5 +127,4 @@ for s = 1 : length(list)
 
         end
 end
-% save([path2go 'res_ANOVA_150tr_full.mat'],'res_anova','list','bins2consider','bins_considered','time','subsp','times_evts','-v7.3')
 save([path2go 'res_ANOVA_full.mat'],'res_anova','list','bins2consider','bins_considered','time','subsp','times_evts','-v7.3')

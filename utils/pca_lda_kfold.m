@@ -1,4 +1,4 @@
-function [perf,Post_all] = pca_lda_kfold(XX,YY,param)
+function [perf,Post_all,out] = pca_lda_kfold(XX,YY,param)
 
 ncd = length(unique(YY{1}));
 Post_all = zeros(length(XX),ncd,ncd);
@@ -39,3 +39,21 @@ for t = 1 : length(XX)
     end
 end
 perf = nanmean(perf,2);
+
+for t = 1 : length(XX)
+    post_dumm = squeeze(Post_all(t,:,:));
+    Cds = 1:size(post_dumm,1);
+    for cl = 1 : length(Cds)
+        TP = post_dumm(cl,cl);
+        FN = sum(post_dumm(cl,Cds~=cl));
+        FP = sum(post_dumm(Cds~=cl,cl));
+        TN = sum(sum(post_dumm(Cds~=cl,Cds~=cl)));
+
+        out.recall(t,cl) = TP/(TP+FN);
+        out.precision(t,cl) = TP/(TP+FP);
+        out.specificity(t,cl) = TN/(TN+FP);
+    end
+end
+out.f_meas = (2.*out.recall.*out.precision) ./ (out.recall+out.precision)   ;
+
+

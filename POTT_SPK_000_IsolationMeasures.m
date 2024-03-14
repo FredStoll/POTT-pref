@@ -1,6 +1,11 @@
+%% POTT Pref - Isolation metrics - TABLE S1
+%-
+%- Author: Fred M. Stoll, Icahn School of Medicine at Mount Sinai, NY
+%- Date: 2023.03
+%- Related to: Stoll & Rudebeck, Neuron, 2024
 
 clear
-spkpath = '/Users/fred/Dropbox/Rudebeck Lab/ANA-POTT-BehavPrefChange/data/neurons/subset-final/'
+spkpath = '/Users/fred/Dropbox/Rudebeck Lab/ANA-POTT-BehavPrefChange/data/neurons/subset-final/';
 cd(spkpath)
 
 listneurons = dir('*SPKpool.mat');
@@ -12,7 +17,6 @@ peak_noise =[];
 fr =[];
 monkey =[];
 name =[];
-
 
 for ne = 1 : length(listneurons)
     disp(ne)
@@ -29,21 +33,15 @@ for ne = 1 : length(listneurons)
     monkey = [monkey ; repmat({listneurons(ne).name(1)},length(area_histology),1)] ;
     name = [name ; spike.neurons];
 end
-save([spkpath 'POTT_Isolation.mat'],'isolation','monkey',"name","spk_area","fr","peak_noise","peak_snr","noise_overlap")
+% save([spkpath 'POTT_Isolation.mat'],'isolation','monkey',"name","spk_area","fr","peak_noise","peak_snr","noise_overlap")
 
-figure;
-subplot(1,5,1);histogram(isolation);title('ISOLATION')
-subplot(1,5,2);histogram(noise_overlap);title('NOISE OVERLAP')
-subplot(1,5,3);histogram(peak_snr);title('PEAK SNR')
-subplot(1,5,4);histogram(peak_noise);title('PEAK NOISE')
-subplot(1,5,5);histogram(fr);title('AVG FR')
+load([spkpath 'POTT_Isolation.mat'],'isolation','monkey',"name","spk_area","fr","peak_noise","peak_snr","noise_overlap")
 
 median([isolation , noise_overlap , peak_snr , peak_noise , fr])
 %figure;plot(peak_snr,fr,'o')
 
-
 areas = utils_POTT_areas;
- area2test = {'vlPFC' 'OFC' 'IFG' 'LAI' 'AMG' };
+area2test = {'vlPFC' 'OFC' 'IFG' 'LAI' 'AMG' };
 
 %- COLOR ASSIGNMENT
 order = [3 1 2 5 7 4];
@@ -80,3 +78,22 @@ for ar = 1 : length(area2test)
 
     end
 end
+
+tableS1=cell(length(area2test)*2,5);
+mk={'M' 'X'};
+x=0;
+for ar = 1 : length(area2test)
+    for m = 1 : 2
+        eval(['takeit = ismember(spk_area,areas.' area2test{ar} ') & ismember(monkey,mk(m));'])
+        nb_unit(ar,m) = sum(takeit);
+        x=x+1;
+        tableS1(x,1:5) = [{[num2str(round(prctile(isolation(takeit),50),3)) ' [' num2str(round(prctile(isolation(takeit),25),3)) ' ' num2str(round(prctile(isolation(takeit),75),3)) ']' ]} ,...
+            {[num2str(round(prctile(noise_overlap(takeit),50),3)) ' [' num2str(round(prctile(noise_overlap(takeit),25),3)) ' ' num2str(round(prctile(noise_overlap(takeit),75),3)) ']' ]} ,...
+            {[num2str(round(prctile(peak_snr(takeit),50),2)) ' [' num2str(round(prctile(peak_snr(takeit),25),2)) ' ' num2str(round(prctile(peak_snr(takeit),75),2)) ']' ]} ,...
+            {[num2str(round(prctile(peak_noise(takeit),50),2)) ' [' num2str(round(prctile(peak_noise(takeit),25),2)) ' ' num2str(round(prctile(peak_noise(takeit),75),2)) ']' ]} ,...
+            {[num2str(round(prctile(fr(takeit),50),2)) ' [' num2str(round(prctile(fr(takeit),25),2)) ' ' num2str(round(prctile(fr(takeit),75),2)) ']' ]}];
+    end
+end
+
+
+
