@@ -13,11 +13,8 @@ name = {'perf_ju' 'perf_pb' 'perf_unpb' 'perf_si' 'perf_pb1' 'perf_pb2' }
 %name = {'perf_ju' 'perf_pb' 'perf_pb1' 'perf_pb2'}
 load([path2go 'res_LDA_stim.mat'])
 area2test = {'vlPFC' 'OFC' 'IFG' 'LAI'}
-order = [3 1 2 5 4 7];
-colorsArea = cbrewer('qual', 'Set2', 8);
-colorsArea = colorsArea(order,:);
-colorsArea_sub = cbrewer('qual', 'Pastel2', 8);
-colorsArea_sub = colorsArea_sub(order,:);
+[colorsArea,colorsArea_sub] = colorMeUp('POTT'); %- COLOR ASSIGNMENT
+
 % figure;
 maxPerf = [];
 sessions_all=char();

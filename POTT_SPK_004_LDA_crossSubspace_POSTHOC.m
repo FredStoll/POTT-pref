@@ -16,11 +16,7 @@ name = {'perf_pb' 'perf_fl' }
 load([path2go 'res_LDA_cross_revision2_final.mat']);
 
 area2test = {'vlPFC' 'OFC' 'IFG' 'LAI' 'AMG'}
-order = [3 1 2 5 4 7];
-colorsArea = cbrewer('qual', 'Set2', 8);
-colorsArea = colorsArea(order,:);
-colorsArea_sub = cbrewer('qual', 'Pastel2', 8);
-colorsArea_sub = colorsArea_sub(order,:);
+[colorsArea,colorsArea_sub] = colorMeUp('POTT');
 
 util.statout = @(out,p2take_name) ['F(' num2str(out.DF1(strcmp(out.Term,p2take_name))) ',' num2str(out.DF2(strcmp(out.Term,p2take_name))) ...
     ')=' num2str(out.FStat(strcmp(out.Term,p2take_name))) ...

@@ -42,13 +42,8 @@ median([isolation , noise_overlap , peak_snr , peak_noise , fr])
 
 areas = utils_POTT_areas;
 area2test = {'vlPFC' 'OFC' 'IFG' 'LAI' 'AMG' };
+[colorsArea,colorsArea_sub] = colorMeUp('POTT'); %- COLOR ASSIGNMENT
 
-%- COLOR ASSIGNMENT
-order = [3 1 2 5 7 4];
-colorsArea = cbrewer('qual', 'Set2', 8);
-colorsArea = colorsArea(order,:);
-colorsArea_sub = cbrewer('qual', 'Pastel2', 8);
-colorsArea_sub = colorsArea_sub(order,:);
 mk={'M' 'X'}
 figure
 for ar = 1 : length(area2test)

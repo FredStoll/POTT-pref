@@ -387,13 +387,7 @@ mean(nbSig_allperm(:,1)./nbSig_allperm(:,2))
 min(nbSig_allperm(:,1)./nbSig_allperm(:,2))
 max(nbSig_allperm(:,1)./nbSig_allperm(:,2))
 
-
-%- COLOR ASSIGNMENT
-order = [3 1 2 5 4 7];
-colorsArea = cbrewer('qual', 'Set2', 8);
-colorsArea = colorsArea(order,:);
-colorsArea_sub = cbrewer('qual', 'Pastel2', 8);
-colorsArea_sub = colorsArea_sub(order,:);
+[colorsArea,colorsArea_sub] = colorMeUp('POTT'); %- COLOR ASSIGNMENT
 
 %- Figure 7D
 figure;
