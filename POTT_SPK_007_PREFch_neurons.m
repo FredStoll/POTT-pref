@@ -1,14 +1,17 @@
-%% SPK ANOVA for preference modulation
-%- Require the time windows for PRE/POST pref change extracted in POTT_BHV_001_GLM
-
+%% POTT Pref - SPK ANOVA for preference modulation - Figure 7
+%- Require the time windows for PRE/POST pref change extracted in
+%- POTT_BHV_001_GLM (Matrix Pref_bins.mat)
+%-
 %- Author: Fred M. Stoll, Icahn School of Medicine at Mount Sinai, NY
 %- Date: 2022.12
+%- Related to: Stoll & Rudebeck, Neuron, 2024
 
-%% Pref ANOVA - neurons
+%% Run the ANOVA on neurons' firing rates..
+%- do that for each monkey (X and M)
 
 clear
 
-monkey = 'X';
+monkey = 'X'; %- X / M
 norm_me = @(data) -1+((data-min(data))*2)/(max(data)-min(data)) ;
 norm_pb = @(data) -1+((data-0.1)*2)/(0.9-0.1) ;
 
@@ -36,7 +39,7 @@ x = 0;
 
 rmv = 100; % remove xxx ms on each side on every events (avoid overlaps between bins and smoothing problems)
 % times_evts = {'FixFP_onset' 'Stim_onset' 'Resp_onset' 'FixResp_onset' 'FB_onset' 'Rew_onset' 'FB_offset'};
-bins4decoding=[2]; %- perform decoding on subset on bins (stim and go period here)
+bins4decoding=[2]; %- perform decoding on subset on bins (stim period here)
 binwindow = [200 800];
 nbPerm = 100;
 
@@ -67,7 +70,6 @@ for s =  1 : length(list)
         end
         
         %- keep only considered bins
-        % SPK.SPK_INS(:,~ismember(bins,bins4decoding))=[];
         time2cons = ismember(bins,bins4decoding) & time>=binwindow(1) & time<=binwindow(2);
         SPK.SPK_INS = SPK.SPK_INS(:,time2cons);
         time(~time2cons) = [];
@@ -75,8 +77,6 @@ for s =  1 : length(list)
         % find trial ID for the neurons
         trID_neurons = find(ALL(idxSess).TrialType(1,:)==2 & ALL(idxSess).TrialType(2,:)==0);
         
-        %     figure;plot(ALL(s).TrialType(11,trID_neurons));hold on
-        %     plot(SPK.TrialType_INS(12,:))
         [ALL(idxSess).Z_trend_ft,~]=Mann_Kendall(ALL(idxSess).ft_bins,0.01);
         [ALL(idxSess).Z_trend_rt,~]=Mann_Kendall(ALL(idxSess).rt_bins,0.01);
         [ALL(idxSess).Z_trend_pref,~]=Mann_Kendall(ALL(idxSess).pref_bins,0.01);
@@ -87,9 +87,7 @@ for s =  1 : length(list)
             pb_files(x)=s;
             
         else
-            
-            pref_ch(takebhv,:)
-            
+                        
             dumm = SPK.TrialType_INS(ismember(SPK.TrialType_header,{'nTr' 'I_chosenproba' 'I_chosenjuice' }),:)';
             dumm = [dumm(:,1) dumm(:,2)+(100*dumm(:,3))];
             
@@ -100,16 +98,15 @@ for s =  1 : length(list)
             tt = find(diff_juice);
             
             keep = [130 150 170 190 230 250 270 290];
-          %  remove = ~ismember(dumm(:,2),keep) | ~diff_juice';
             
             preTr = pref_ch{takebhv,2}; %- out of the diff juice trials
-            preTr4spk = tt(preTr); %- trial to take for neurons
+            preTr4spk = tt(preTr); %- trial to take for neurons PRE
             preTr_fact = dumm(preTr4spk,:);
             preRemove = ~ismember(preTr_fact(:,2),keep) ;
             preTr_fact(preRemove,:)=[];
           
             postTr = pref_ch{takebhv,3}; %- out of the diff juice trials
-            postTr4spk = tt(postTr); %- trial to take for neurons
+            postTr4spk = tt(postTr); %- trial to take for neurons POST
             postTr_fact = dumm(postTr4spk,:);
             postRemove = ~ismember(postTr_fact(:,2),keep) ;
             postTr_fact(postRemove,:)=[];
@@ -122,7 +119,6 @@ for s =  1 : length(list)
                               postTr_fact(:,1) norm_pb(mod(postTr_fact(:,2),100)/100) floor(postTr_fact(:,2)/100) 2*ones(size(postTr_fact(:,1)))]; %- no inverse juice (1 = valued / 2 = devalued)
             end
             
-
             clear Ap PEVs Fs Omega2 R2 Betas FR factors PEVs_perm Omega2_perm Ap_perm R2_perm
 
             for n = 1 : length(SPK.neurons_area)
@@ -179,62 +175,11 @@ end
 
 save([path2go 'res_ANOVAprefbin_' monkey '_final.mat'],'res_anova','list','-v7.3')
 
-%% Check the overlap in sessions between corr method and thr method
-
-clear
-path2go2 = '/Users/fred/Dropbox/Rudebeck Lab/ANA-POTT-BehavPrefChange/data/';
-load([path2go2 'M_Corr_pref_STIM_Final.mat']);            
-X = load([path2go2 'X_Corr_pref_STIM_Final.mat']);      
-
-%- combine monkeys
-mk = [zeros(size(pref_sig,1),1) ;ones(size(X.pref_sig,1),1)  ];
-pref_sig = [pref_sig , (1:length(pref_sig))' ; X.pref_sig 1000+(1:length(X.pref_sig))'];
-allCorr = [allCorr ; [X.allCorr(:,1:3) , X.allCorr(:,4)+1000 , X.allCorr(:,5)]];
-allID = [allID ; X.allID ];
-
-[h_sig, crit_p, adj_p]=fdr_bh(pref_sig(:,1),0.05,'pdep','yes');
-pref_sig(:,1) = adj_p;
-
-%allCorr = allCorr_full;
-%allCorr_pop = allCorr_full_pop;
-
-%- find the sig sessions for pref
-for i = 1 : length(allCorr)
-    xx = find(pref_sig(:,5)==allCorr(i,4));
-    allCorr(i,5:6)= [pref_sig(xx,1) mk(xx)];
-    name_sess{i,1} = allID(i,1:8);
-end
-
-name_sess_unique = unique(name_sess)
-for i = 1 : length(name_sess_unique)
-    listi = ismember(name_sess,name_sess_unique(i));
-    dd = allCorr(listi,5);
-    pref_sess(i,1)=dd(1);
-end
-sig_meth1 = name_sess_unique(pref_sess<0.05)
-
-
-
-load([path2go2 'Pref_bins.mat'])
-
-pref_ch = [pref_ch_mk{1,1} ;pref_ch_mk{1,2} ]; 
-sig_meth2 = pref_ch(:,1)
-
-
-sum(ismember(sig_meth1,sig_meth2))
-sum(ismember(sig_meth1(1:18),sig_meth2(1:38)))
-sum(ismember(sig_meth1(19:end),sig_meth2(39:end)))
-
-
-
-
-
 %% Post hoc
 
 clear
 path2go = '/Users/fred/Dropbox/Rudebeck Lab/ANA-POTT-BehavPrefChange/data/neurons/subset-final/'; %- path where SPKpool files are!
 
-sigAnova = load('C:\Users\Fred\Dropbox\Rudebeck Lab\ANA-POTT-BehavPrefChange\POTT_sigUnits_name.mat')
 Stability = load('C:\Users\Fred\Dropbox\Rudebeck Lab\ANA-POTT-BehavPrefChange\data\POTT_waveforms_ratio.mat')
 rej = false; %- reject if waveform not fully stable
 
@@ -246,6 +191,11 @@ area2test = {'vlPFC' 'OFC' 'IFG' 'LAI'};
 area_list = utils_POTT_areas;
 
 thr_sig = 0.01;
+
+%- to show the stat on figures
+statout = @(out,p2take_name) ['F(' num2str(out.DF1(strcmp(out.Term,p2take_name))) ',' num2str(out.DF2(strcmp(out.Term,p2take_name))) ...
+    ')=' num2str(round(out.FStat(strcmp(out.Term,p2take_name)),3)) ...
+    ', p(' p2take_name ')=' num2str(round(out.pValue(strcmp(out.Term,p2take_name)),3))];
 
 %- combine all sessions
 all_diff = [res_anova(:).Ap];
@@ -298,10 +248,6 @@ if rej
     keep = (sum(isnan(all_diff))==0)' & ~ismember(all_units,'AMG') & (sum(stab_measures')==0)' ;
 end
 
-%- find which neurons were sig for proba or juice in main ana... NOT USED!!!!
-%probaUnits = ismember(cellstr(all_names), cellstr(sigAnova.name_sig{2}))';
-%juiceUnits = ismember(cellstr(all_names), cellstr(sigAnova.name_sig{1}))';
-
 probaUnits = sum(all_diff([1 4 5 7],keep)<=thr_sig)~=0 ;
 juiceUnits = sum(all_diff([2 4 6 7],keep)<=thr_sig)~=0 ;
 bothUnits = juiceUnits & probaUnits ;
@@ -314,8 +260,7 @@ allUnits = true(size(juiceUnits)) ;
 sig_units = sum(all_diff([3 5 6 7],keep)<=thr_sig)~=0;
 [sum(sig_units) length(sig_units)]
 sig_units_perm = squeeze(sum(all_diff_perm([3 5 6 7],keep,:)<=thr_sig))~=0;
- [min(sum(sig_units_perm)) mean(sum(sig_units_perm)) max(sum(sig_units_perm))]
- [min(sum(sig_units_perm(probaUnits,:))) mean(sum(sig_units_perm(probaUnits,:))) max(sum(sig_units_perm(probaUnits,:)))]
+[min(sum(sig_units_perm)) mean(sum(sig_units_perm)) max(sum(sig_units_perm))]
  
 all_area = cell(size(all_units));
 for ar = 1 : length(area2test)
@@ -327,25 +272,11 @@ all_mk = all_mk(keep);
 all_beta = all_beta(:,keep);
 all_sess_id = all_sess_id(keep);
 
-
 %- count nb neurons
 for ar = 1 : length(area2test)
     dumm = ismember(all_area, area2test{ar} ) ;
     nbunits_tot(ar,:) = [sum(dumm & ismember(all_mk,'M'))  sum(dumm & ismember(all_mk,'X')) ];
 end
-
-% modeldata = table(sig_units',probaUnits',juiceUnits',all_area,all_mk,all_sess_id, 'VariableNames',{'sig' 'proba' 'juice' 'area' 'mk' 'sess'})
-% figure;
-% for ar = 1 : length(area2test)
-%     sub = modeldata(ismember(modeldata.area,area2test{ar}) ,:);
-%     prop_venn(ar,:) = [sum(sub.sig==true & sub.proba==true & sub.juice==false) ...
-%          sum(sub.sig==true & sub.proba==false & sub.juice==true) ...
-%          sum(sub.sig==true & sub.proba==true & sub.juice==true) ...
-%          sum(sub.sig==true) ];
-% 
-%     subplot(1,length(area2test),ar)
-%     venn(prop_venn(ar,1:3))
-% end
 
 modeldata = table(sig_units',probaUnits',juiceUnits',all_area,all_mk,all_sess_id, 'VariableNames',{'sig' 'proba' 'juice' 'area' 'mk' 'sess'})
 figure;
@@ -353,17 +284,16 @@ prop_venn=[];
 colors4pie = [253 192 134 ; 190 174 212; 127 201 127 ; 153 153 153]/255;
 for ar = 1 : length(area2test)
     sub = modeldata(ismember(modeldata.area,area2test{ar}) ,:);
-    prop_venn(ar,:) = [sum(sub.sig==false & sub.proba==true & sub.juice==false) ...
-         sum(sub.sig==false & sub.proba==true & sub.juice==true) ...
-         sum(sub.sig==false & sub.proba==false & sub.juice==true) ...
-         sum(sub.sig==false & sub.proba==false & sub.juice==false) ...
-   %      sum(sub.sig==false & sub.proba==false & sub.juice==false) ...
+    prop_venn(ar,:) = [sum(sub.sig==true & sub.proba==true & sub.juice==false) ...
+         sum(sub.sig==true & sub.proba==true & sub.juice==true) ...
+         sum(sub.sig==true & sub.proba==false & sub.juice==true) ...
+         sum(sub.sig==true & sub.proba==false & sub.juice==false) ...
          ];
 
     prop = round(100*(prop_venn(ar,:)/sum(prop_venn(ar,:))))
     labels = {['PB - ' num2str(prop(1)) '%'],['PB+ID - ' num2str(prop(2)) '%'],['ID - ' num2str(prop(3)) '%'],['others - ' num2str(prop(4)) '%']};
 
-    subplot(1,length(area2test),ar)
+    subplot(2,2,ar)
    % pat = pie(prop_venn(ar,:),labels);
     pat = pie(prop_venn(ar,:));
     x = 0;
@@ -374,134 +304,75 @@ for ar = 1 : length(area2test)
     title(area2test{ar})
 end
 
-
-%- significance
-modeldata = table(sig_units',probaUnits',juiceUnits',all_area,all_mk,all_sess_id, 'VariableNames',{'sig' 'proba' 'juice' 'area' 'mk' 'sess'})
+modeldata = table(sig_units',probaUnits',juiceUnits',all_area,all_mk,all_sess_id, 'VariableNames',{'sig' 'proba' 'juice' 'area' 'mk' 'sess'});
 modeldata = modeldata(modeldata.sig==true,:);
+models_form = {'sig ~ 1 + area  + (1|mk) + (1|sess)'};
+
+%- significance for proba only
 cd = modeldata.proba==true & modeldata.juice==false;
-modeldata_pb = table(cd, modeldata.area,modeldata.mk,modeldata.sess , 'VariableNames',{'sig' 'area' 'mk' 'sess'})
+modeldata_sub = table(cd, modeldata.area,modeldata.mk,modeldata.sess , 'VariableNames',{'sig' 'area' 'mk' 'sess'});
+lme_pb = fitglme(modeldata_sub,models_form{1},'Distribution','Binomial');
+[pval,wald,thr_corr,pval_adj] = area_posthoc(lme_pb,area2test,'n');
+disp(['%%%%%%%%%% Proba only neurons with model = ' models_form{1} ' %%%%%%%%%%'])
+disp(anova(lme_pb));disp(pval_adj);disp(wald);
+disp('%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%')
 
-models_form = {'sig ~ 1 + area  + (1|mk) + (1|sess)' ; 'sig ~ 1 + area  + (1|mk)'};
-        %[lme,model_final] = model_comparison(modeldata,models_form,true);
-        lme = fitglme(modeldata_pb,models_form{1},'Distribution','Binomial'); model_final = models_form{1};
-        [pval,wald,thr_corr,pval_adj] = area_posthoc(lme,area2test,'y');
-        disp(['%%%%%%%%%% % sig pb with model = ' model_final ' %%%%%%%%%%'])
-        disp(anova(lme));disp(pval_adj);disp(wald);
-        disp('%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%')
-
-
-modeldata = table(sig_units',probaUnits',juiceUnits',all_area,all_mk,all_sess_id, 'VariableNames',{'sig' 'proba' 'juice' 'area' 'mk' 'sess'})
-modeldata = modeldata(modeldata.sig==true,:);
+%- significance for proba + flavor
 cd = modeldata.proba==true & modeldata.juice==true;
-modeldata_pb = table(cd, modeldata.area,modeldata.mk,modeldata.sess , 'VariableNames',{'sig' 'area' 'mk' 'sess'})
+modeldata_sub = table(cd, modeldata.area,modeldata.mk,modeldata.sess , 'VariableNames',{'sig' 'area' 'mk' 'sess'});
+lme_pbfl = fitglme(modeldata_sub,models_form{1},'Distribution','Binomial'); model_final = models_form{1};
+[pval,wald,thr_corr,pval_adj] = area_posthoc(lme_pbfl,area2test,'n');
+disp(['%%%%%%%%%% Proba + Flavor neurons with model = ' model_final ' %%%%%%%%%%'])
+disp(anova(lme_pbfl));disp(pval_adj);disp(wald);
+disp('%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%')
 
-models_form = {'sig ~ 1 + area  + (1|mk) + (1|sess)' ; 'sig ~ 1 + area  + (1|mk)'};
-        %[lme,model_final] = model_comparison(modeldata,models_form,true);
-        lme = fitglme(modeldata_pb,models_form{1},'Distribution','Binomial'); model_final = models_form{1};
-        [pval,wald,thr_corr,pval_adj] = area_posthoc(lme,area2test,'y');
-        disp(['%%%%%%%%%% % sig pb with model = ' model_final ' %%%%%%%%%%'])
-        disp(anova(lme));disp(pval_adj);disp(wald);
-        disp('%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%')
-
-
-modeldata = table(sig_units',probaUnits',juiceUnits',all_area,all_mk,all_sess_id, 'VariableNames',{'sig' 'proba' 'juice' 'area' 'mk' 'sess'})
-modeldata = modeldata(modeldata.sig==true,:);
+%- significance for flavor
 cd = modeldata.proba==false & modeldata.juice==true;
-modeldata_pb = table(cd, modeldata.area,modeldata.mk,modeldata.sess , 'VariableNames',{'sig' 'area' 'mk' 'sess'})
+modeldata_sub = table(cd, modeldata.area,modeldata.mk,modeldata.sess , 'VariableNames',{'sig' 'area' 'mk' 'sess'});
+lme_fl = fitglme(modeldata_sub,models_form{1},'Distribution','Binomial'); model_final = models_form{1};
+[pval,wald,thr_corr,pval_adj] = area_posthoc(lme_fl,area2test,'n');
+disp(['%%%%%%%%%% Proba + Flavor neurons with model = ' model_final ' %%%%%%%%%%'])
+disp(anova(lme_fl));disp(pval_adj);disp(wald);
+disp('%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%')
 
-models_form = {'sig ~ 1 + area  + (1|mk) + (1|sess)' ; 'sig ~ 1 + area  + (1|mk)'};
-        %[lme,model_final] = model_comparison(modeldata,models_form,true);
-        lme = fitglme(modeldata_pb,models_form{1},'Distribution','Binomial'); model_final = models_form{1};
-        [pval,wald,thr_corr,pval_adj] = area_posthoc(lme,area2test,'y');
-        disp(['%%%%%%%%%% % sig pb with model = ' model_final ' %%%%%%%%%%'])
-        disp(anova(lme));disp(pval_adj);disp(wald);
-        disp('%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%')
-
-
-modeldata = table(sig_units',probaUnits',juiceUnits',all_area,all_mk,all_sess_id, 'VariableNames',{'sig' 'proba' 'juice' 'area' 'mk' 'sess'})
-modeldata = modeldata(modeldata.sig==true,:);
+%- significance for others
 cd = modeldata.proba==false & modeldata.juice==false;
-modeldata_pb = table(cd, modeldata.area,modeldata.mk,modeldata.sess , 'VariableNames',{'sig' 'area' 'mk' 'sess'})
+modeldata_sub = table(cd, modeldata.area,modeldata.mk,modeldata.sess , 'VariableNames',{'sig' 'area' 'mk' 'sess'});
+lme_ot = fitglme(modeldata_sub,models_form{1},'Distribution','Binomial'); model_final = models_form{1};
+[pval,wald,thr_corr,pval_adj] = area_posthoc(lme_ot,area2test,'n');
+disp(['%%%%%%%%%% Proba + Flavor neurons with model = ' model_final ' %%%%%%%%%%'])
+disp(anova(lme_ot));disp(pval_adj);disp(wald);
+disp('%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%')
 
-models_form = {'sig ~ 1 + area  + (1|mk) + (1|sess)' ; 'sig ~ 1 + area  + (1|mk)'};
-        %[lme,model_final] = model_comparison(modeldata,models_form,true);
-        lme = fitglme(modeldata_pb,models_form{1},'Distribution','Binomial'); model_final = models_form{1};
-        [pval,wald,thr_corr,pval_adj] = area_posthoc(lme,area2test,'y');
-        disp(['%%%%%%%%%% % sig pb with model = ' model_final ' %%%%%%%%%%'])
-        disp(anova(lme));disp(pval_adj);disp(wald);
-        disp('%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%')
+%- show stat on Fig 7C
+legend({statout(anova(lme_pb),'area') statout(anova(lme_pbfl),'area') statout(anova(lme_fl),'area') statout(anova(lme_ot),'area') })
 
 
-
-%- chance levels
-modeldata = table(sig_units',probaUnits',juiceUnits',all_area,all_mk,all_sess_id, 'VariableNames',{'sig' 'proba' 'juice' 'area' 'mk' 'sess'})
-figure;
-prop_venn=[];
-colors4pie = [253 192 134 ; 190 174 212; 127 201 127 ; 153 153 153]/255;
-for ar = 1 : length(area2test)
-    prop_perm=[];
-    for pe = 1 : 100
-        sub = modeldata(ismember(modeldata.area,area2test{ar}) ,:);
-        sub.sig = sub.sig(randperm(length(sub.sig)));
-        %sub.juice = sub.juice(randperm(length(sub.sig)));
-        prop_perm(pe,:) = [sum(sub.sig==true & sub.proba==true & sub.juice==false) ...
-             sum(sub.sig==true & sub.proba==true & sub.juice==true) ...
-             sum(sub.sig==true & sub.proba==false & sub.juice==true) ...
-             sum(sub.sig==true & sub.proba==false & sub.juice==false) ...
-       %      sum(sub.sig==false & sub.proba==false & sub.juice==false) ...
-             ];
-    end
-prop_venn(ar,:) = mean(prop_perm)
-    prop = round(100*(prop_venn(ar,:)/sum(prop_venn(ar,:))))
-    labels = {['PB - ' num2str(prop(1)) '%'],['PB+ID - ' num2str(prop(2)) '%'],['ID - ' num2str(prop(3)) '%'],['others - ' num2str(prop(4)) '%']};
-
-    subplot(1,length(area2test),ar)
-   % pat = pie(prop_venn(ar,:),labels);
-    pat = pie(prop_venn(ar,:));
-    x = 0;
-    for i = 1 : 2 : length(pat)
-        x = x + 1;
-        pat(i).FaceColor = colors4pie(x,:);
-    end
-    title(area2test{ar})
-end
-
-%- for the different populations
-test = {'proba' 'juice' 'both' 'either' 'nthg' 'all'};
-test = {'all'};
+%- for the different populations (stats on Fig 7D)
 test = {'probaonly' 'both' 'juiceonly' 'nthg' 'all'};
-
 for t = 1 : length(test)
     eval(['restr = ' test{t} 'Units;'])
         %- significance
-    modeldata = table(sig_units(restr)',all_area(restr),all_mk(restr),all_sess_id(restr), 'VariableNames',{'sig' 'area' 'mk' 'sess'})
-        models_form = {'sig ~ 1 + area  + (1|mk) + (1|sess)' ; 'sig ~ 1 + area  + (1|mk)'};
-        %[lme,model_final] = model_comparison(modeldata,models_form,true);
-        lme = fitglme(modeldata,models_form{1}); model_final = models_form{1};
+        modeldata = table(sig_units(restr)',all_area(restr),all_mk(restr),all_sess_id(restr), 'VariableNames',{'sig' 'area' 'mk' 'sess'});
+        lme = fitglme(modeldata,models_form{1}); 
 
-    [pval,wald,thr_corr,pval_adj] = area_posthoc(lme,area2test,'y');
+    [pval,wald,thr_corr,pval_adj] = area_posthoc(lme,area2test,'n');
         disp(['%%%%%%%%%% % sig ' test{t} ' with model = ' model_final ' %%%%%%%%%%'])
         disp(anova(lme));disp(pval_adj);disp(wald);
+        stats_fig{t} = statout(anova(lme),'area');
         disp('%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%')
 
     for ar = 1 : length(area2test)
         nbunits_stab(ar,:) = [sum(modeldata.sig(ismember(modeldata.area,area2test{ar}))) length(modeldata.sig(ismember(modeldata.area,area2test{ar})))];
     end
     nbunits_stab
-    pause
-
 end
-
- 
-%      for ar = 1 : length(area2test)
-%          [tbl,chi2s(ar),p(ar)] = chi2_fms(nbunits_stab(ar,1),nbunits_stab(ar,2),nbunits_stabonly(ar,1),nbunits_stabonly(ar,2))
-%      end
 
 %- check permutations numbers
 t=1;
 for p = 1 : length(sig_units_perm(1,:))
-    eval(['restr = ' test{t} 'Units;'])
-    modeldata = table(sig_units_perm(restr,p),all_area(restr),all_mk(restr),all_sess_id(restr), 'VariableNames',{'sig' 'area' 'mk' 'sess'})
+    eval(['restr = ' test{t} 'Units;']);
+    modeldata = table(sig_units_perm(restr,p),all_area(restr),all_mk(restr),all_sess_id(restr), 'VariableNames',{'sig' 'area' 'mk' 'sess'});
 
     for ar = 1 : length(area2test)
         nbSig(ar,:) = [sum(modeldata.sig(ismember(modeldata.area,area2test{ar})) ) length(modeldata.sig(ismember(modeldata.area,area2test{ar})) )];
@@ -524,6 +395,7 @@ colorsArea = colorsArea(order,:);
 colorsArea_sub = cbrewer('qual', 'Pastel2', 8);
 colorsArea_sub = colorsArea_sub(order,:);
 
+%- Figure 7D
 figure;
 for t = 1 : length(test)
     eval(['restr = ' test{t} 'Units;'])
@@ -537,21 +409,20 @@ for t = 1 : length(test)
         nbSig_X(ar,:) = [sum(dumm) length(dumm)];
     end
 
-    subplot(1,length(test),t)
+    subplot(2,3,t)
     for ar = 1 : length(area2test)
         bar(ar, (nbSig(ar,1)./nbSig(ar,2))*100,'FaceColor',colorsArea(ar,:));hold on
     end
     plot((nbSig_M(:,1)./nbSig_M(:,2))*100,'o','MarkerSize',10,'MarkerFaceColor',[.8 .8 .8],'MarkerEdgeColor','k')
     plot((nbSig_X(:,1)./nbSig_X(:,2))*100,'v','MarkerSize',10,'MarkerFaceColor',[.65 .65 .65],'MarkerEdgeColor','k')
     set(gca,'Xtick',1:length(area2test),'XtickLabel',area2test,'XtickLabelRotation',30,'FontSize',16)
-    ylim([0 80])
+    ylim([0 100])
     xlim([0 length(area2test)+1])
     ylabel('Percent Pref modulated neurons')
-    title([test{t} ' units'])
+    title({[test{t} ' units'],stats_fig{t}})
 end
 
-%- Check the sign of the Beta (decrease or increase in FR with SAT)
-
+%% Check the sign of the Beta (decrease or increase in FR with PREF)
 all_beta_sig = all_beta;
 all_beta_sig(all_diff(:,keep)>thr_sig)=NaN;
 
@@ -583,7 +454,7 @@ for ar = 1 : length(area2test)
 end
 
 
-%- what's the most common motif
+%% what's the most common motif ? Figure S8
 %- check against perm.
 clear sat_units sat_units_M sat_units_X
 all_diff_restr = all_diff(:,keep);
@@ -678,103 +549,99 @@ disp(anova(lme));disp(pval_adj);disp(wald);
 disp('%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%')
 
 
-
-%% plot examples PSTH
+%% plot examples PSTH - Figure 7A
 
 %- for saving some examples..
-pathFig = 'C:\Users\Fred\Dropbox\Rudebeck Lab\Posters and Talks\PSTH Pref Example Neurons\';
+% pathFig = 'C:\Users\Fred\Dropbox\Rudebeck Lab\Posters and Talks\PSTH Pref Example Neurons\';
 
-%for s = 76%1 : length(res_anova)
-%    for n = 22%1 : length(res_anova(s).Ap(1,:))
-for s = 73%1 : length(res_anova)
-    for n = 9%1 : length(res_anova(s).Ap(1,:))
-        clearvars -except s n res_anova pathFig
-        if sum(res_anova(s).Ap([3 5 6 7],n)<0.001)~=0
-   %     if res_anova(s).Ap(6,n)<0.01
+%- 2 examples
+s = [73 76];
+n = [9 22];
 
-            %- extract the name of the file where the timestamps are!
-            if res_anova(s).neurons_info(n,1)<10; addzeros = '00';
-            elseif res_anova(s).neurons_info(n,1)<100; addzeros = '0';
-            else addzeros = '';
-            end
-            if res_anova(s).neurons_info(n,2)<10; addzeros2 = '0';
-            else addzeros2 = '';
-            end
+for x = 1 : length(s)
+    clearvars -except s n res_anova pathFig x
+    if sum(res_anova(s(x)).Ap([3 5 6 7],n(x))<0.001)~=0
 
-            file_id = [res_anova(s).session '_Ch' addzeros num2str(res_anova(s).neurons_info(n,1)) ...
-                '_Clus' addzeros2 num2str(res_anova(s).neurons_info(n,2)) '.mat'];
-
-            %- find the file in the different folder
-            if strcmp(res_anova(s).session(1),'M')
-                path4file = utils_POTT_SPKfolder('MORBIER');
-            elseif strcmp(res_anova(s).session(1),'X') & datenum(res_anova(s).session(2:7),'mmddyy')<datenum('090920','mmddyy')
-                path4file = utils_POTT_SPKfolder('MIMIC1');
-            else
-                path4file = utils_POTT_SPKfolder('MIMIC2');
-            end
-
-            pref_ch = res_anova(s).pref_ch;
-
-            %- load unit
-            Unit = load([path4file file_id]);
-            Unit.info.area{1} = res_anova(s).neurons_area{n}; %- update area label based on histo
-
-            %- load the event file from that session
-            evt = load([path4file res_anova(s).session '_behav.mat']);
-
-            %- take only the event considered in the Pref analysis
-            TrialType_INS = evt.TrialType(:,evt.TrialType(1,:)==2 & evt.TrialType(2,:)==0 );
-
-            evt2take = evt.t_stim(1,evt.TrialType(1,:)==2 & evt.TrialType(2,:)==0 ) ;
-
-            dumm = TrialType_INS(ismember(evt.TrialType_header,{ 'I_chosenproba' 'I_chosenjuice' }),:)';
-            dumm = [(1:length(dumm))' dumm(:,1)+(100*dumm(:,2))];
-
-            when = @(arg,cd) TrialType_INS(strcmp(evt.TrialType_header,arg),:)==cd ;
-            diff_juice = (when('I_juiceL',1) & when('I_juiceR',2)) | (when('I_juiceL',2) & when('I_juiceR',1)); %- take only the different juice trials
-
-            %- extract only the diff juice trials
-            tt = find(diff_juice);
-
-            keep = [130 150 170 190 230 250 270 290];
-            %  remove = ~ismember(dumm(:,2),keep) | ~diff_juice';
-
-            preTr = pref_ch{1,2}; %- out of the diff juice trials
-            preTr4spk = tt(preTr); %- trial to take for neurons
-            preTr_fact = dumm(preTr4spk,:);
-            preRemove = ~ismember(preTr_fact(:,2),keep) ;
-            preTr_fact(preRemove,:)=[];
-
-            postTr = pref_ch{1,3}; %- out of the diff juice trials
-            postTr4spk = tt(postTr); %- trial to take for neurons
-            postTr_fact = dumm(postTr4spk,:);
-            postRemove = ~ismember(postTr_fact(:,2),keep) ;
-            postTr_fact(postRemove,:)=[];
-
-            if pref_ch{1,4}(2)-pref_ch{1,4}(1)>0
-                allfactors = [preTr_fact(:,1) (mod(preTr_fact(:,2),100)) abs(floor(preTr_fact(:,2)/100)-3) ones(size(preTr_fact(:,1))) ; ...
-                    postTr_fact(:,1) (mod(postTr_fact(:,2),100)) abs(floor(postTr_fact(:,2)/100)-3) 2*ones(size(postTr_fact(:,1)))]; %- inverse juice (1 = valued / 2 = devalued)
-            else
-                allfactors = [preTr_fact(:,1) (mod(preTr_fact(:,2),100)) floor(preTr_fact(:,2)/100) ones(size(preTr_fact(:,1))) ; ...
-                    postTr_fact(:,1) (mod(postTr_fact(:,2),100)) floor(postTr_fact(:,2)/100) 2*ones(size(postTr_fact(:,1)))]; %- no inverse juice (1 = valued / 2 = devalued)
-            end
-
-            %- create conditions and threshold for subplot
-            cond=allfactors(:,2)+100*allfactors(:,3)+1000*allfactors(:,4);
-            evt2take = evt2take(allfactors(:,1));
-            grp=cond>2000;
-
-            %- general params
-            evtName = 'Stim';
-            pre = 750;
-            post = 2000;
-
-         %   fighandle1 = rasterPSTH_2bins(Unit,evt2take,evtName,cond',2000,pre,post,pathFig);
-         %   fighandle1 = rasterPSTH_2bins(Unit,evt2take,evtName,cond',2000,pre,post);
-            fighandle1 =   rasterPSTH_2bins_SUB(Unit,evt2take,evtName,cond',2000,pre,post);
-            pause
-            close(fighandle1)
+        %- extract the name of the file where the timestamps are!
+        if res_anova(s(x)).neurons_info(n(x),1)<10; addzeros = '00';
+        elseif res_anova(s(x)).neurons_info(n(x),1)<100; addzeros = '0';
+        else addzeros = '';
         end
+        if res_anova(s(x)).neurons_info(n(x),2)<10; addzeros2 = '0';
+        else addzeros2 = '';
+        end
+
+        file_id = [res_anova(s(x)).session '_Ch' addzeros num2str(res_anova(s(x)).neurons_info(n(x),1)) ...
+            '_Clus' addzeros2 num2str(res_anova(s(x)).neurons_info(n(x),2)) '.mat'];
+
+        %- find the file in the different folder
+        if strcmp(res_anova(s(x)).session(1),'M')
+            path4file = utils_POTT_SPKfolder('MORBIER');
+        elseif strcmp(res_anova(s(x)).session(1),'X') & datenum(res_anova(s(x)).session(2:7),'mmddyy')<datenum('090920','mmddyy')
+            path4file = utils_POTT_SPKfolder('MIMIC1');
+        else
+            path4file = utils_POTT_SPKfolder('MIMIC2');
+        end
+
+        pref_ch = res_anova(s(x)).pref_ch;
+
+        %- load unit
+        Unit = load([path4file file_id]);
+        Unit.info.area{1} = res_anova(s(x)).neurons_area{n(x)}; %- update area label based on histo
+
+        %- load the event file from that session
+        evt = load([path4file res_anova(s(x)).session '_behav.mat']);
+
+        %- take only the event considered in the Pref analysis
+        TrialType_INS = evt.TrialType(:,evt.TrialType(1,:)==2 & evt.TrialType(2,:)==0 );
+
+        evt2take = evt.t_stim(1,evt.TrialType(1,:)==2 & evt.TrialType(2,:)==0 ) ;
+
+        dumm = TrialType_INS(ismember(evt.TrialType_header,{ 'I_chosenproba' 'I_chosenjuice' }),:)';
+        dumm = [(1:length(dumm))' dumm(:,1)+(100*dumm(:,2))];
+
+        when = @(arg,cd) TrialType_INS(strcmp(evt.TrialType_header,arg),:)==cd ;
+        diff_juice = (when('I_juiceL',1) & when('I_juiceR',2)) | (when('I_juiceL',2) & when('I_juiceR',1)); %- take only the different juice trials
+
+        %- extract only the diff juice trials
+        tt = find(diff_juice);
+
+        keep = [130 150 170 190 230 250 270 290];
+
+        preTr = pref_ch{1,2}; %- out of the diff juice trials
+        preTr4spk = tt(preTr); %- trial to take for neurons
+        preTr_fact = dumm(preTr4spk,:);
+        preRemove = ~ismember(preTr_fact(:,2),keep) ;
+        preTr_fact(preRemove,:)=[];
+
+        postTr = pref_ch{1,3}; %- out of the diff juice trials
+        postTr4spk = tt(postTr); %- trial to take for neurons
+        postTr_fact = dumm(postTr4spk,:);
+        postRemove = ~ismember(postTr_fact(:,2),keep) ;
+        postTr_fact(postRemove,:)=[];
+
+        if pref_ch{1,4}(2)-pref_ch{1,4}(1)>0
+            allfactors = [preTr_fact(:,1) (mod(preTr_fact(:,2),100)) abs(floor(preTr_fact(:,2)/100)-3) ones(size(preTr_fact(:,1))) ; ...
+                postTr_fact(:,1) (mod(postTr_fact(:,2),100)) abs(floor(postTr_fact(:,2)/100)-3) 2*ones(size(postTr_fact(:,1)))]; %- inverse juice (1 = valued / 2 = devalued)
+        else
+            allfactors = [preTr_fact(:,1) (mod(preTr_fact(:,2),100)) floor(preTr_fact(:,2)/100) ones(size(preTr_fact(:,1))) ; ...
+                postTr_fact(:,1) (mod(postTr_fact(:,2),100)) floor(postTr_fact(:,2)/100) 2*ones(size(postTr_fact(:,1)))]; %- no inverse juice (1 = valued / 2 = devalued)
+        end
+
+        %- create conditions and threshold for subplot
+        cond=allfactors(:,2)+100*allfactors(:,3)+1000*allfactors(:,4);
+        evt2take = evt2take(allfactors(:,1));
+        grp=cond>2000;
+
+        %- general params
+        evtName = 'Stim';
+        pre = 750;
+        post = 2000;
+
+        fighandle1 = rasterPSTH_2bins(Unit,evt2take,evtName,cond',2000,pre,post);
+        %  fighandle1 =   rasterPSTH_2bins_SUB(Unit,evt2take,evtName,cond',2000,pre,post);
+        pause
     end
 end
+
 

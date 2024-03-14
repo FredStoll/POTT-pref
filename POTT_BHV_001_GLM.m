@@ -13,7 +13,7 @@ path2go = '/Users/fred/Dropbox/Rudebeck Lab/ANA-POTT-BehavPrefChange/data/';
 skip = true; %- re-run the models or just run on saved models! 
 
 if ~skip
-    mk = 'Mimic'; % 'Morbier'
+    mk = 'Mimic'; % 'Morbier' 'Mimic'
 
     %- list all the files
     if strcmp(mk(1:2),'Mi')
@@ -34,29 +34,48 @@ if ~skip
     date_order = sortrows(days);
     list = list(date_order(:,2));
 
-    for sess = 1 : length(list) % for every sessions
-        filename = [path2go list(sess).name];
+    x=0;
+    for currsess = 1 : length(list) % for every sessions
+        filename = [path2go list(currsess).name];
 
-        [ALL(sess,1),param] = behav_model(filename,false,showfig); %- no permutations
-
-        if perm
-            for p = 1 : nPerm
-                [ALLperm(sess,p),~] = behav_model(filename,perm,showfig);
+        [all,par] = behav_model_bins(filename,false,showfig); %- no permutations
+        if ~isempty(all)
+            x = x + 1;
+            ALL(x,1)=all;
+            param(x,1) = par;
+            
+            %- for the perm (note that behav is changed here, but does not
+            % impact the behav for the neuron later on, which is not permutated
+            if perm
+                for p = 1 : nPerm
+                    [ALLperm(x,p),~] = behav_model_bins(filename,perm,showfig);
+                end
             end
+            
         end
 
     end
     if perm
-        save([path2go mk '_behav_norm_ALL_prevJuice_ft.mat'],'ALL','ALLperm','param','-v7.3')
+     %   save([path2go mk '_behav_bins_revision.mat'],'ALL','ALLperm','param','-v7.3')
+        save([path2go mk '_behav_bins_final.mat'],'ALL','ALLperm','param','-v7.3')
+      %  save([path2go mk '_behav_norm_ALL_prevJuice_ft.mat'],'ALL','ALLperm','param','-v7.3')
     else
-        save([path2go mk '_behav_norm_ALL_prevJuice_ft.mat'],'ALL','param','-v7.3')
+    %    save([path2go mk '_behav_bins_revision.mat'],'ALL','param','-v7.3')
+        save([path2go mk '_behav_bins_final.mat'],'ALL','param','-v7.3')
+       % save([path2go mk '_behav_norm_ALL_prevJuice_ft.mat'],'ALL','param','-v7.3')
     end
 end
 
+
+
 %% POTT - load models for behavioral analyses and Figures (1B/4A-C/5)
 
-M1 = load([path2go 'Morbier_behav_bins.mat'],'ALL','param')
-M2 = load([path2go 'Mimic_behav_bins.mat'],'ALL','param')
+%M1 = load([path2go 'Morbier_behav_bins.mat'],'ALL','param')
+%M2 = load([path2go 'Mimic_behav_bins.mat'],'ALL','param')
+%M1 = load([path2go 'Morbier_behav_bins_revision.mat'],'ALL','param')
+%M2 = load([path2go 'Mimic_behav_bins_revision.mat'],'ALL','param')
+M1 = load([path2go 'Morbier_behav_bins_final.mat'],'ALL','param')
+M2 = load([path2go 'Mimic_behav_bins_final.mat'],'ALL','param')
 
 %- remove sessions before threshold for Morbier, if needed
 subset = {'052318' '010122'} ; %- for anything after last change
@@ -87,6 +106,8 @@ end
 
 all_p_trend = [M1.ALL(:).p_trend M2.ALL(:).p_trend ];
 all_converge = [M1.ALL(:).converge M2.ALL(:).converge ];
+all_converge_alt = [M1.ALL(:).converge_alt M2.ALL(:).converge_alt ];
+all_converge = all_converge & all_converge_alt;
 all_p_trend(all_converge==0)=[];
 [h_sig, crit_p, adj_p]=fdr_bh(all_p_trend,0.05,'pdep','yes');
 thr_trend = crit_p;
@@ -197,6 +218,57 @@ ylim([0 length( ALL(1).mdl.CoefficientNames)])
 nbSigSess(:,2:end)./nbTotSess(:,2:end)
 nbSigSess(:,2:end)
 
+%% look at proportion of session best explained by full or reduced model
+%- number trials per sessions (all set, not only converging ones)
+AIC=[];
+pref=[];
+mk=[];
+r2=[];
+session_name={};
+for m = 1 : 2
+    eval(['ALL = M' num2str(m) '.ALL;']);
+    for s = 1 : length(ALL)
+        if ALL(s).converge_alt & ALL(s).converge
+            AIC = [AIC ; ALL(s).mdl_alt.ModelCriterion.AIC ALL(s).mdl.ModelCriterion.AIC];
+            r2 = [r2 ; ALL(s).mdl_alt.Rsquared.Adjusted ALL(s).mdl.Rsquared.Adjusted];
+            pref = [pref ; ALL(s).pref];
+            mk = [mk ; m];
+            session_name = [session_name ; ALL(s).name(end-17:end-10)];
+        end
+    end
+end
+
+prop_mdl = [sum(sign(AIC(:,1)-AIC(:,2))==-1) length(AIC) ;...
+            sum(sign(AIC(:,1)-AIC(:,2))==-1 & mk==1) length(AIC(mk==1)) ;...   
+            sum(sign(AIC(:,1)-AIC(:,2))==-1 & mk==2) length(AIC(mk==2))]  ;
+
+prop_mdl(:,1)./prop_mdl(:,2)
+
+for m = 1 : 3
+    [tbl,chi2stat(m),pval(m)] = chi2_fms(prop_mdl(m,1),prop_mdl(m,2),prop_mdl(m,2)-prop_mdl(m,1),prop_mdl(m,2))
+end
+
+figure;histogram(abs(pref(sign(AIC(:,1)-AIC(:,2))==-1)-0.5),[0:0.025:0.5]);
+hold on
+histogram(abs(pref(sign(AIC(:,1)-AIC(:,2))==1)-0.5),[0:0.025:0.5]);
+xlabel('Absolute Preference');
+ylabel('Number of sessions')
+
+keep_sessions = session_name(sign(AIC(:,1)-AIC(:,2))==1);
+
+save([path2go 'POTT_Behav_subset.mat'],'keep_sessions')
+
+prctile(abs(pref(sign(AIC(:,1)-AIC(:,2))==-1)-0.5),[50 25 75])
+prctile(abs(pref(sign(AIC(:,1)-AIC(:,2))==1)-0.5),[50 25 75])
+
+kwtest = [abs(pref(sign(AIC(:,1)-AIC(:,2))==-1)-0.5), ones(size(abs(pref(sign(AIC(:,1)-AIC(:,2))==-1)-0.5))) ; ...
+          abs(pref(sign(AIC(:,1)-AIC(:,2))==1)-0.5), 2*ones(size(abs(pref(sign(AIC(:,1)-AIC(:,2))==1)-0.5)))];
+
+kruskalwallis(kwtest(:,1),kwtest(:,2))
+
+
+
+
 %% look at choice consistency in same juice trials for the different preferences
 both_pref = [];
 figure;
@@ -263,6 +335,79 @@ line([length(corrmat_both)+1 0],[length(corrmat_both)+1 0],'Color',[0.6 0.6 0.6]
 h = pixelgrid(h);
 h.Children(1).Color = [0.6 0.6 0.6];
 %h.Children(2).Color = [31 120 180]/255;
+
+%%
+
+figure;
+colors = cbrewer('qual', 'Paired', 10);
+
+%- plot adjusted R2
+x=0;
+clear pref_bins conf_bins curr_sess
+for m = 1 : 2
+    clear converge r_adj  keep
+    eval(['ALL = M' num2str(m) '.ALL;']);
+    for i = 1 : length(ALL)
+        r_adj(:,i) = ALL(i).mdl.Rsquared.Adjusted;
+        converge(:,i) = ALL(i).converge;
+        if ALL(i).converge & ALL(i).p_trend<thr_trend
+            x=x+1;
+            pref_bins(x,:)=ALL(i).pref_bins;
+            curr_sess(x,:) = [i m];
+            for b = 1 : length(ALL(i).conf_bins)
+                conf_bins(x,b) = sum(sum(ALL(i).conf_bins{b}))/(size(ALL(i).conf_bins{b},1)*size(ALL(i).conf_bins{b},2));
+            end
+           % subplot(6,6,x)
+           % contour(10:1:90,10:1:90,ALL(x).conf_bins{1},[0.4 0.4],'b');axis xy
+           % hold on;contour(10:1:90,10:1:90,ALL(x).conf_bins{end},[0.4 0.4],'r');axis xy
+
+        end
+    end
+
+end
+
+figure;
+%expl = randperm(length(pref_bins),20)
+for i = 1 : length(pref_bins);
+    subplot(4,20,i);
+    if curr_sess(i,2)==1
+    plot(conf_bins(i,:)','Color',colors(4,:));
+    else
+    plot(conf_bins(i,:)','Color',colors(10,:));
+    end
+    ylim([0 1]);
+    title(num2str(curr_sess(i,1)))
+end
+
+figure;
+minmaxit = @(x) (x-min(x)) / (max(x)-min(x))
+expl = {[1 52 61 87] [12 28 30 42 64 170 173]}
+expl = {[52 61 72 93] [ 28 30 42 64 170 173]}
+expl = [find(ismember(curr_sess(:,1),expl{1}) & curr_sess(:,2)==1) ; find(ismember(curr_sess(:,1),expl{2}) & curr_sess(:,2)==2) ];
+for i = 1 : length(expl);
+    subplot(3,length(expl),[i length(expl)+i]);
+    if curr_sess(expl(i),2)==1
+    plot(pref_bins(expl(i),:)','Color',colors(4,:));
+    else
+    plot(pref_bins(expl(i),:)','Color',colors(10,:));
+    end
+    ylim([0 1]);
+    title(num2str(curr_sess(expl(i),1)))
+end
+for i = 1 : length(expl);
+    subplot(3,length(expl),i+2*length(expl));
+    if curr_sess(expl(i),2)==1
+    plot(minmaxit(conf_bins(expl(i),:)'),'Color',colors(4,:));
+    else
+    plot(minmaxit(conf_bins(expl(i),:)'),'Color',colors(10,:));
+    end
+    ylim([0 1]);
+    title(num2str(curr_sess(expl(i),1)))
+end
+
+
+figure;
+imagesc(10:1:90,10:1:90,ALL(8).conf_bins{end});axis xy
 
 
 %% Correlation btw Zval and preference - Fig 5B
@@ -529,6 +674,121 @@ for m = 1:2
     text(-.125,-0.3,['p=' num2str(p(2,1))],'FontSize',12,'Color',col(2,:))
 end
 
+%% same with conf measure
+
+
+figure;
+for m = 1:2
+    subplot(2,1,m);
+    line([0 0],[-15 15],'Color','k');
+    hold on
+    line([-0.5 0.5],[0 0],'Color','k'); box on;
+    colors = cbrewer('qual', 'Paired', 10);
+
+    clear devia_ref Z_trend p_trend converge
+    eval(['ALL = M' num2str(m) '.ALL;']);
+
+    converge = [ALL(:).converge]==1;
+    p_trend = [ALL(:).p_trend];
+
+    for d = 1 : size(ALL,1)
+        Z_trend(d) = ALL(d).Z_trend;
+        conf_sum=[];
+        for b = 1 : length(ALL(d).conf_bins)
+            conf_sum(b) = sum(sum(ALL(d).conf_bins{b}))/(size(ALL(d).conf_bins{b},1)*size(ALL(d).conf_bins{b},2));
+        end
+        devia_ref(d) = mean(conf_sum-mean(conf_sum(1:ref_length)));
+    end
+
+    %- remove session that did not converge
+    devia_ref=devia_ref(converge);
+    p_trend=p_trend(converge);
+    Z_trend=Z_trend(converge);
+
+    if m == 1
+        col= colors(3:4,:);
+    else
+        col= colors(9:10,:);
+    end
+
+    plot(devia_ref(p_trend>thr_trend),Z_trend(p_trend>thr_trend),'.','Color',col(1,:),'MarkerSize',15);hold on
+    plot(devia_ref(p_trend<=thr_trend),Z_trend(p_trend<=thr_trend),'.','Color',col(2,:),'MarkerSize',15);hold on
+
+    xx = devia_ref;
+    yy = Z_trend;
+    ww = ones(size(Z_trend)); %- not weighted!
+    [R,p] = corrcoef(xx,yy);
+    slope = R(2,1) * ( std(repelem(yy,ww)) / std(repelem(xx,ww)) );
+    intercept = mean(repelem(yy,ww)) - ( slope * mean(repelem(xx,ww))); %- or that, the same thing : sum(W.*yy') - ( slope *  sum(W.*xx'));
+    corrline = (xx * slope) + intercept;
+    plot(xx,corrline,'-','LineWidth',2,'Color',col(2,:))
+
+    ylim([-15 15]);
+    xlim([-.5 .5]);
+    ylabel('Z-value (Trend in residuals)')
+    xlabel('Confidence')
+    set(gca,'FontSize',12)
+    text(-.125,-8.5,['R=' num2str(round(100*R(2,1))/100)],'FontSize',12,'Color',col(2,:))
+    text(-.125,-10.5,['p=' num2str(p(2,1))],'FontSize',12,'Color',col(2,:))
+end
+
+figure;
+for m = 1:2
+    subplot(2,1,m);
+    line([0 0],[-15 15],'Color','k');
+    hold on
+    line([-0.5 0.5],[0 0],'Color','k'); box on;
+    colors = cbrewer('qual', 'Paired', 10);
+
+    clear devia_ref Z_trend p_trend converge
+    eval(['ALL = M' num2str(m) '.ALL;']);
+
+    converge = [ALL(:).converge]==1;
+    p_trend = [ALL(:).p_trend];
+
+    for d = 1 : size(ALL,1)
+        Z_trend(d) = mean(ALL(d).pref_bins-mean(ALL(d).pref_bins(1:ref_length)));
+        conf_sum=[];
+        for b = 1 : length(ALL(d).conf_bins)
+            conf_sum(b) = sum(sum(ALL(d).conf_bins{b}))/(size(ALL(d).conf_bins{b},1)*size(ALL(d).conf_bins{b},2));
+        end
+        devia_ref(d) = mean(conf_sum-mean(conf_sum(1:ref_length)));
+    end
+
+    %- remove session that did not converge
+    devia_ref=devia_ref(converge);
+    p_trend=p_trend(converge);
+    Z_trend=Z_trend(converge);
+
+    if m == 1
+        col= colors(3:4,:);
+    else
+        col= colors(9:10,:);
+    end
+
+    plot(devia_ref(p_trend>thr_trend),Z_trend(p_trend>thr_trend),'.','Color',col(1,:),'MarkerSize',15);hold on
+    plot(devia_ref(p_trend<=thr_trend),Z_trend(p_trend<=thr_trend),'.','Color',col(2,:),'MarkerSize',15);hold on
+
+    xx = devia_ref;
+    yy = Z_trend;
+    ww = ones(size(Z_trend)); %- not weighted!
+    [R,p] = corrcoef(xx,yy);
+    slope = R(2,1) * ( std(repelem(yy,ww)) / std(repelem(xx,ww)) );
+    intercept = mean(repelem(yy,ww)) - ( slope * mean(repelem(xx,ww))); %- or that, the same thing : sum(W.*yy') - ( slope *  sum(W.*xx'));
+    corrline = (xx * slope) + intercept;
+    plot(xx,corrline,'-','LineWidth',2,'Color',col(2,:))
+
+    ylim([-.35 .35]);
+    xlim([-.5 .5]);
+    ylabel('Juice Pref')
+    xlabel('Confidence')
+    set(gca,'FontSize',12)
+    text(-.125,-0.2,['R=' num2str(round(100*R(2,1))/100)],'FontSize',12,'Color',col(2,:))
+    text(-.125,-0.3,['p=' num2str(p(2,1))],'FontSize',12,'Color',col(2,:))
+end
+
+
+
 %% Example session with change in preference (Mimic) - Fig. 5A
 
 ALL = M2.ALL;
@@ -539,7 +799,8 @@ d = 12; %145 15
 colors = cbrewer('div', 'RdBu', 128);
 norm = @(data) -1+((data-min(data))*2)/(max(data)-min(data)) ;
 
-probas = norm([10:1:90]);
+raw_probas = 10:1:90;
+probas = norm(raw_probas);
 
 clear sensitivity_bins pref_bins radj_bins ft_bins rt_bins mdl_bins resid
 x = 0;
@@ -567,10 +828,12 @@ for b = 1 : nb_bins
     try
         [newf_bins , ~] = predict(mdl_bins,tab_all);
         newf_bins = reshape(newf_bins,length(probas),length(probas));
+        conf=-newf_bins.*log(newf_bins)-(1-newf_bins).*log(1-newf_bins); %% define by amemori & graybiel 2012 last supp figure
+
     end
     x = x + 1;
     subplot(4,nb_bins,x)
-    imagesc([10:1:90],[10:1:90],newf_bins);axis xy;colormap(colors)
+    imagesc(raw_probas,raw_probas,conf);axis xy;
 end
 subplot(4,nb_bins,[x+1 : 4*nb_bins])
 
@@ -594,17 +857,22 @@ devia_ref(d)
 
 %% Example pref for Fig 4A
 
-ALL = M1.ALL;
+ALL = [M1.ALL ; M2.ALL];
+ 
+raw_probas = 10:1:90;
+probas = norm(raw_probas);
 
 figure
 dd = randperm(length(ALL),9); %145 15
+%dd = [77 64 85 12]
+dd = [77 176 85 131]
+
 x = 0;
 for d = 1 : length(dd)
     if ALL(dd(d)).converge
-        colors = cbrewer('div', 'RdBu', 128);
+        colors = cbrewer('div', 'RdBu', 101);
         norm = @(data) -1+((data-min(data))*2)/(max(data)-min(data)) ;
 
-        probas = norm([10:1:90]);
 
         clear sensitivity_bins pref_bins radj_bins ft_bins rt_bins mdl_bins resid
 
@@ -628,10 +896,25 @@ for d = 1 : length(dd)
             [newf_bins , ~] = predict(mdl_bins,tab_all);
             newf_bins = reshape(newf_bins,length(probas),length(probas));
         end
+
+
         x = x + 1;
-        subplot(3,3,x)
-        imagesc([10:1:90],[10:1:90],newf_bins);axis xy;colormap(colors)
+        subplot(2,2,x)
+        imagesc(raw_probas,raw_probas,newf_bins);axis xy;colormap(colors)
         title([num2str(dd(d)) ' ' num2str(ALL(dd(d)).pref)])
+        hold on;
+        dumm1 = round(unique(ALL(dd(d)).T.probJ1),2);
+    dumm2 = round(unique(ALL(dd(d)).T.probJ2),2);
+for i = 1 : length(dumm1)
+    for j = 1 : length(dumm2)
+        avgperf(i,j)=mean(grp2idx(ALL(dd(d)).T.choice(round(ALL(dd(d)).T.probJ1,2)==dumm1(i) & round(ALL(dd(d)).T.probJ2,2)==dumm2(j)))-1 );
+        if ~isnan(avgperf(i,j))
+             plot(raw_probas(probas==dumm1(i)), raw_probas(probas==dumm2(j)),'o','MarkerSize',10,'MarkerEdgeColor','k','MarkerFaceColor',colors(round(avgperf(i,j)*100)+1,:));hold on
+           %  plot(raw_probas(probas==dumm1(i)), raw_probas(probas==dumm2(j)),'ok','MarkerSize',20)
+        end
+    end
+end
+
     end
 end
 
@@ -650,7 +933,7 @@ for m = 1 : 2
     end
 end
 
-modeldata = table(all_pref,all_converge,all_mk,a ll_days,'VariableNames',{'pref' 'converge' 'mk' 'session'})
+modeldata = table(all_pref,all_converge,all_mk,all_days,'VariableNames',{'pref' 'converge' 'mk' 'session'})
 modeldata(modeldata.converge==0,:)=[];
 
 

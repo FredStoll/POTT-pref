@@ -1,9 +1,8 @@
-%% DECODING vs PREFERENCE (BETWEEN SESSION)
-
+%% POTT Pref - DECODING vs PREFERENCE (BETWEEN SESSION) - Figure 5
+%- 
 %- Author: Fred M. Stoll, Icahn School of Medicine at Mount Sinai, NY
 %- Date: 2023.03
-
-clear
+%- Related to: Stoll & Rudebeck, Neuron, 2024
 
 clear
 path2go = '/Users/fred/Dropbox/Rudebeck Lab/ANA-POTT-BehavPrefChange/data/neurons/subset-final/'; %- path where SPKpool files are!
@@ -65,7 +64,6 @@ end
 all_sess = unique([tab(1).modeldata.session ; tab(2).modeldata.session ; tab(3).modeldata.session ; tab(4).modeldata.session ; tab(5).modeldata.session])  ;
 
 x=0;
-
 for i = 1 : length(all_sess)
     for ar = 1 : length(area2test)
         x=x+1;
@@ -155,57 +153,23 @@ for m = 1 : size(grp,1)
         title(area2test{ar})
         xlim([0 xsc]); ylim([ysc(1) ysc(2)])
         box on
-
-
     end
-
 end
-
 
 abs(modeldata.pref-0.5)
 
-tbl_juice = table(modeldata.perf_ju,abs(modeldata.pref-0.5),modeldata.area,modeldata.mk,'VariableNames',{'perf' 'pref' 'area' 'mk'})
-lme_juice = fitglme(tbl_juice,'perf ~ 1 + area*pref + (1|mk)')
-
+tbl_juice = table(modeldata.perf_ju,abs(modeldata.pref-0.5),modeldata.area,modeldata.mk,'VariableNames',{'perf' 'pref' 'area' 'mk'});
+lme_juice = fitglme(tbl_juice,'perf ~ 1 + area*pref + (1|mk)');
 anova(lme_juice)
-% lme_juice_fitted = fitted(lme_juice)
-%
-% figure;plot(lme_juice_fitted,modeldata.perf_ju,'o')
 
-
-tbl_proba = table(modeldata.perf_pb,abs(modeldata.pref-0.5),modeldata.area,modeldata.mk,'VariableNames',{'perf' 'pref' 'area' 'mk'})
-lme_proba = fitglme(tbl_proba,'perf ~ 1 + area*pref + (1|mk)')
-
+tbl_proba = table(modeldata.perf_pb,abs(modeldata.pref-0.5),modeldata.area,modeldata.mk,'VariableNames',{'perf' 'pref' 'area' 'mk'});
+lme_proba = fitglme(tbl_proba,'perf ~ 1 + area*pref + (1|mk)');
 anova(lme_proba)
 
 
-tbl_pb12 = table(modeldata.perf_pb2-modeldata.perf_pb1,modeldata.pref,modeldata.area,modeldata.mk,'VariableNames',{'perf' 'pref' 'area' 'mk'})
-lme_pb12 = fitglme(tbl_pb12,'perf ~ 1 + area*pref + (1|mk)')
-
+tbl_pb12 = table(modeldata.perf_pb2-modeldata.perf_pb1,modeldata.pref,modeldata.area,modeldata.mk,'VariableNames',{'perf' 'pref' 'area' 'mk'});
+lme_pb12 = fitglme(tbl_pb12,'perf ~ 1 + area*pref + (1|mk)');
 anova(lme_pb12)
-
-
-%-
-
-lme_juice_fitted = fitted(lme_juice)
-%ci = coefCI(lme_juice)
-figure;
-for ar = 1 : length(area2test)
-    take = ismember(modeldata.area,area2test{ar})
-    plot(tbl_juice.pref(take),lme_juice_fitted(take),'o','Color',colorsArea(ar,:));
-    hold on
-end
-
-lme_pb12_fitted = fitted(lme_pb12)
-%ci = coefCI(lme_juice)
-figure;
-for ar = 1 : length(area2test)
-    take = ismember(modeldata.area,area2test{ar})
-    plot(tbl_pb12.pref(take),lme_pb12_fitted(take),'o','Color',colorsArea(ar,:));
-    hold on
-end
-
-
 
 %% FIG S4 - individual monkeys!
 
