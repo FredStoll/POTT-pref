@@ -9,7 +9,7 @@ clear
 mk = 'Mimic';
 
 %- locate the files
-path2go = ('/Users/Fred/Dropbox/Rudebeck Lab/ANA-POTT-BehavPrefChange/data/')
+path2go = ('/Users/Fred/Dropbox/Rudebeck Lab/ANA-POTT-BehavPrefChange/data-final/')
 %path2go = ('C:\Users\Fred\Dropbox\Rudebeck Lab\ANA-POTT-BehavPrefChange\data\')
 
 %- list all the files
@@ -42,7 +42,7 @@ save([path2go mk '_behav_norm_DEVAL_prevJuice.mat'],'ALL','param','tim','-v7.3')
 %% POST-PROCESSING OF THE DEVAL SESSIONS IN MONKEY X
 
 clear
-path2go = ('/Users/Fred/Dropbox/Rudebeck Lab/ANA-POTT-BehavPrefChange/data/')
+path2go = ('/Users/Fred/Dropbox/Rudebeck Lab/ANA-POTT-BehavPrefChange/data-final/')
 
 cd(path2go)
 load('Mimic_behav_norm_DEVAL_prevJuice.mat')

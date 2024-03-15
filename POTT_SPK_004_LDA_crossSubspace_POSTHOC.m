@@ -8,12 +8,12 @@
 
 clear
 
-path2go = '/Users/fred/Dropbox/Rudebeck Lab/ANA-POTT-BehavPrefChange/data/neurons/subset-final/'
+path2go = '/Users/fred/Dropbox/Rudebeck Lab/ANA-POTT-BehavPrefChange/data-final/neurons/'
 
 %- load the decoding results
 measures = {'I_juice_by_chosenproba'  };% 'chosenproba'}
 name = {'perf_pb' 'perf_fl' }
-load([path2go 'res_LDA_cross_revision2_final.mat']);
+load([path2go 'res_LDA_cross.mat']);
 
 area2test = {'vlPFC' 'OFC' 'IFG' 'LAI' 'AMG'}
 [colorsArea,colorsArea_sub] = colorMeUp('POTT');

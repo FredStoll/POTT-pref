@@ -14,7 +14,7 @@ clear
 subset_ana = 'Sig_behav' ; % 'Diff_units' or 'Sig_behav'
 subset_param = 'main' ; % 'main' (for chosen flavor/proba) or 'supp' (for unchosen flavor/side)
 
-path2go = '/Users/fred/Dropbox/Rudebeck Lab/ANA-POTT-BehavPrefChange/data/neurons/subset-final/';
+path2go = '/Users/fred/Dropbox/Rudebeck Lab/ANA-POTT-BehavPrefChange/data-final/neurons/';
 
 %- load the anova results
 load([path2go 'res_ANOVA_full.mat'])
@@ -23,7 +23,7 @@ if strcmp(subset_ana,'Diff_units')
     M_keep = load([path2go 'Morbier_diff_units_only.mat'])
     X_keep = load([path2go 'Mimic_diff_units_only.mat'])
 elseif strcmp(subset_ana,'Sig_behav')
-    load('/Users/fred/Dropbox/Rudebeck Lab/ANA-POTT-BehavPrefChange/data/POTT_Behav_subset.mat')
+    load('/Users/fred/Dropbox/Rudebeck Lab/ANA-POTT-BehavPrefChange/data-final/POTT_Behav_subset.mat')
 end
 
 if strcmp(subset_param,'main')

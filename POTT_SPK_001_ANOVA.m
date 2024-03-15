@@ -7,7 +7,7 @@
 
 clear
 
-path2go = '/Users/fred/Dropbox/Rudebeck Lab/ANA-POTT-BehavPrefChange/data/neurons/subset-final/'
+path2go = '/Users/fred/Dropbox/Rudebeck Lab/ANA-POTT-BehavPrefChange/data-final/neurons/'
 list = dir([path2go '*a_SPKpool.mat']);
 
 disp(['Computing ANOVANs on ' num2str(length(list)) ' sessions'])

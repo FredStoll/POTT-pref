@@ -77,37 +77,37 @@ for mm = 1 : length(mk2take)
 
     spk_names = {list(:).name}';
 
-    save(['C:\Users\Fred\Dropbox\Rudebeck Lab\ANA-POTT-BehavPrefChange\data\' mk2take{mm} '_waveforms_ratio.mat'],'spk_names','avg_ratio','avg_ratio_norm','avg_ratio_sig','thr','nb_bins','ref')
+    save(['C:\Users\Fred\Dropbox\Rudebeck Lab\ANA-POTT-BehavPrefChange\data-final\' mk2take{mm} '_waveforms_ratio.mat'],'spk_names','avg_ratio','avg_ratio_norm','avg_ratio_sig','thr','nb_bins','ref')
 end
 
 %% combine all 3 files across monkeys! 
 
 % clear
-% load('C:\Users\Fred\Dropbox\Rudebeck Lab\ANA-POTT-BehavPrefChange\data\X1_waveforms_ratio.mat','spk_names','avg_ratio','avg_ratio_norm','avg_ratio_sig','thr','nb_bins','ref')
-% x = load('C:\Users\Fred\Dropbox\Rudebeck Lab\ANA-POTT-BehavPrefChange\data\X2_waveforms_ratio.mat','spk_names','avg_ratio','avg_ratio_norm','avg_ratio_sig','thr','nb_bins','ref')
+% load('C:\Users\Fred\Dropbox\Rudebeck Lab\ANA-POTT-BehavPrefChange\data-final\X1_waveforms_ratio.mat','spk_names','avg_ratio','avg_ratio_norm','avg_ratio_sig','thr','nb_bins','ref')
+% x = load('C:\Users\Fred\Dropbox\Rudebeck Lab\ANA-POTT-BehavPrefChange\data-final\X2_waveforms_ratio.mat','spk_names','avg_ratio','avg_ratio_norm','avg_ratio_sig','thr','nb_bins','ref')
 % 
 % spk_names = [spk_names ; x.spk_names];
 % avg_ratio = [avg_ratio ; x.avg_ratio];
 % avg_ratio_norm = [avg_ratio_norm ; x.avg_ratio_norm];
 % avg_ratio_sig = [avg_ratio_sig ; x.avg_ratio_sig];
 % 
-% save('C:\Users\Fred\Dropbox\Rudebeck Lab\ANA-POTT-BehavPrefChange\data\X_waveforms_ratio.mat','spk_names','avg_ratio','avg_ratio_norm','avg_ratio_sig','thr','nb_bins','ref')
+% save('C:\Users\Fred\Dropbox\Rudebeck Lab\ANA-POTT-BehavPrefChange\data-final\X_waveforms_ratio.mat','spk_names','avg_ratio','avg_ratio_norm','avg_ratio_sig','thr','nb_bins','ref')
 % 
 % clear
-% load('C:\Users\Fred\Dropbox\Rudebeck Lab\ANA-POTT-BehavPrefChange\data\M_waveforms_ratio.mat','spk_names','avg_ratio','avg_ratio_norm','avg_ratio_sig','thr','nb_bins','ref')
-% x = load('C:\Users\Fred\Dropbox\Rudebeck Lab\ANA-POTT-BehavPrefChange\data\X_waveforms_ratio.mat','spk_names','avg_ratio','avg_ratio_norm','avg_ratio_sig','thr','nb_bins','ref')
+% load('C:\Users\Fred\Dropbox\Rudebeck Lab\ANA-POTT-BehavPrefChange\data-final\M_waveforms_ratio.mat','spk_names','avg_ratio','avg_ratio_norm','avg_ratio_sig','thr','nb_bins','ref')
+% x = load('C:\Users\Fred\Dropbox\Rudebeck Lab\ANA-POTT-BehavPrefChange\data-final\X_waveforms_ratio.mat','spk_names','avg_ratio','avg_ratio_norm','avg_ratio_sig','thr','nb_bins','ref')
 % 
 % spk_names = [spk_names ; x.spk_names];
 % avg_ratio = [avg_ratio ; x.avg_ratio];
 % avg_ratio_norm = [avg_ratio_norm ; x.avg_ratio_norm];
 % avg_ratio_sig = [avg_ratio_sig ; x.avg_ratio_sig];
 % 
-% save('C:\Users\Fred\Dropbox\Rudebeck Lab\ANA-POTT-BehavPrefChange\data\POTT_waveforms_ratio.mat','spk_names','avg_ratio','avg_ratio_norm','avg_ratio_sig','thr','nb_bins','ref')
+% save('C:\Users\Fred\Dropbox\Rudebeck Lab\ANA-POTT-BehavPrefChange\data-final\POTT_waveforms_ratio.mat','spk_names','avg_ratio','avg_ratio_norm','avg_ratio_sig','thr','nb_bins','ref')
 
 %% some stats! 
 
 clear
-load('C:\Users\Fred\Dropbox\Rudebeck Lab\ANA-POTT-BehavPrefChange\data\POTT_waveforms_ratio.mat','spk_names','avg_ratio','avg_ratio_norm','avg_ratio_sig','thr','nb_bins','ref')
+load('C:\Users\Fred\Dropbox\Rudebeck Lab\ANA-POTT-BehavPrefChange\data-final\POTT_waveforms_ratio.mat','spk_names','avg_ratio','avg_ratio_norm','avg_ratio_sig','thr','nb_bins','ref')
 
 for n = 1 : length(spk_names)
     [Z_trend_wf(n),P_wf(n)]=Mann_Kendall(avg_ratio_norm(n,:),0.01);

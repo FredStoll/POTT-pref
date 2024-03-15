@@ -5,7 +5,7 @@
 %- Related to: Stoll & Rudebeck, Neuron, 2024
 
 clear
-spkpath = '/Users/fred/Dropbox/Rudebeck Lab/ANA-POTT-BehavPrefChange/data/neurons/subset-final/';
+spkpath = '/Users/fred/Dropbox/Rudebeck Lab/ANA-POTT-BehavPrefChange/data-final/neurons/';
 cd(spkpath)
 
 listneurons = dir('*SPKpool.mat');

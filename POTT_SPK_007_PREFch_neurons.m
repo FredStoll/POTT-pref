@@ -15,18 +15,17 @@ monkey = 'X'; %- X / M
 norm_me = @(data) -1+((data-min(data))*2)/(max(data)-min(data)) ;
 norm_pb = @(data) -1+((data-0.1)*2)/(0.9-0.1) ;
 
-path2go = 'C:\\Users\fred\Dropbox\Rudebeck Lab\ANA-POTT-BehavPrefChange\data\neurons\subset-final\';
-path2go2 = 'C:\\Users\fred\Dropbox\Rudebeck Lab\ANA-POTT-BehavPrefChange\data\';
+path2go = 'C:\\Users\fred\Dropbox\Rudebeck Lab\ANA-POTT-BehavPrefChange\data-final\';
 
-load([path2go2 'Pref_bins.mat'])
+load([path2go 'POTT_Pref_bins.mat'])
 
 if strcmp(monkey,'X')
-    load([path2go2 'Mimic_behav_bins.mat'])
-    list = dir([path2go 'X*a_SPKpool.mat']);
+    load([path2go 'Mimic_behav_bins_final.mat'])
+    list = dir([path2go  'neurons\' 'X*a_SPKpool.mat']);
     pref_ch = pref_ch_mk{2};
 else
-    load([path2go2 'Morbier_behav_bins.mat'])
-    list = dir([path2go 'M*a_SPKpool.mat']);
+    load([path2go 'Morbier_behav_bins_final.mat'])
+    list = dir([path2go 'neurons\' 'M*a_SPKpool.mat']);
     pref_ch = pref_ch_mk{1};
 end
 
@@ -173,14 +172,14 @@ for s =  1 : length(list)
     end
 end
 
-save([path2go 'res_ANOVAprefbin_' monkey '_final.mat'],'res_anova','list','-v7.3')
+save([path2go  'neurons\' 'res_ANOVAprefbin_' monkey '_final.mat'],'res_anova','list','-v7.3')
 
 %% Post hoc
 
 clear
-path2go = '/Users/fred/Dropbox/Rudebeck Lab/ANA-POTT-BehavPrefChange/data/neurons/subset-final/'; %- path where SPKpool files are!
+path2go = '/Users/fred/Dropbox/Rudebeck Lab/ANA-POTT-BehavPrefChange/data-final/neurons/'; %- path where SPKpool files are!
 
-Stability = load('C:\Users\Fred\Dropbox\Rudebeck Lab\ANA-POTT-BehavPrefChange\data\POTT_waveforms_ratio.mat')
+Stability = load('C:\Users\Fred\Dropbox\Rudebeck Lab\ANA-POTT-BehavPrefChange\data-final\POTT_waveforms_ratio.mat')
 rej = false; %- reject if waveform not fully stable
 
 X = load([path2go 'res_ANOVAprefbin_X_final.mat'])

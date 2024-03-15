@@ -9,7 +9,7 @@
 
 clear
 
-path2go = '/Users/fred/Dropbox/Rudebeck Lab/ANA-POTT-BehavPrefChange/data/neurons/subset-final/'; %- path where SPKpool files are!
+path2go = '/Users/fred/Dropbox/Rudebeck Lab/ANA-POTT-BehavPrefChange/data-final/neurons/'; %- path where SPKpool files are!
 list = dir([path2go '*a_SPKpool.mat']);
 
 param.predic = { 'I_chosenproba_pref' 'I_chosenjuice_pref' }; %- select param you want to test..
@@ -36,8 +36,8 @@ util.meannorm  = @(data) (data-mean(data))/(max(data)-min(data));
 util.minnorm  = @(data) (data-min(min(data)))/(max(max(data))-min(min(data)));
 
 %- load preference periods
-path2go2 = 'C:\\Users\fred\Dropbox\Rudebeck Lab\ANA-POTT-BehavPrefChange\data\';
-load([path2go2 'Pref_bins.mat'])
+path2go2 = 'C:\\Users\fred\Dropbox\Rudebeck Lab\ANA-POTT-BehavPrefChange\data-final\';
+load([path2go2 'POTT_Pref_bins.mat'])
 pref_ch_mk = [pref_ch_mk{1} ;pref_ch_mk{2}];
 
 %- check if matrix already exists for each predictor
@@ -321,7 +321,7 @@ end
 
 clear
 
-path2go = '/Users/fred/Dropbox/Rudebeck Lab/ANA-POTT-BehavPrefChange/data/neurons/subset-final/'
+path2go = '/Users/fred/Dropbox/Rudebeck Lab/ANA-POTT-BehavPrefChange/data-final/neurons/'
 
 %- load the decoding results
 measures = {'I_chosenproba_pref'  'I_chosenjuice_pref' };

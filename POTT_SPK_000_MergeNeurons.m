@@ -13,7 +13,7 @@ clear
 %         list = [list1 ;list2;list3];
 % end
 areas = utils_POTT_areas;
-path2go = '/Users/fred/Dropbox/Rudebeck Lab/ANA-POTT-BehavPrefChange/data/neurons/subset-final/'; %- path where SPKpool files are!
+path2go = '/Users/fred/Dropbox/Rudebeck Lab/ANA-POTT-BehavPrefChange/data-final/neurons/'; %- path where SPKpool files are!
 %path2go = 'F:\POTT_POOL\subset\'; %- path where SPKpool files are!
 list = dir([path2go 'X*a_SPKpool.mat']);
 % area2test = {'vlPFCa' 'vlPFCp' 'OFCa' 'OFCp' 'dlPFCv' 'dlPFCd' 'SMA' 'PMd' 'Cd' 'PUT' 'AMG' 'LAI' 'IFG'};
@@ -87,7 +87,7 @@ clear
 %         list = [list1 ;list2;list3];
 % end
 areas = utils_POTT_areas;
-path2go = '/Users/fred/Dropbox/Rudebeck Lab/ANA-POTT-BehavPrefChange/data/neurons/subset-final/'; %- path where SPKpool files are!
+path2go = '/Users/fred/Dropbox/Rudebeck Lab/ANA-POTT-BehavPrefChange/data-final/neurons/'; %- path where SPKpool files are!
 %path2go = 'F:\POTT_POOL\subset\'; %- path where SPKpool files are!
 list = dir([path2go 'X*a_SPKpool.mat']);
 % area2test = {'vlPFCa' 'vlPFCp' 'OFCa' 'OFCp' 'dlPFCv' 'dlPFCd' 'SMA' 'PMd' 'Cd' 'PUT' 'AMG' 'LAI' 'IFG'};

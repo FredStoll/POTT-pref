@@ -7,7 +7,7 @@
 
 clear
 
-path2go = '/Users/fred/Dropbox/Rudebeck Lab/ANA-POTT-BehavPrefChange/data/neurons/subset-final/';
+path2go = '/Users/fred/Dropbox/Rudebeck Lab/ANA-POTT-BehavPrefChange/data-final/neurons/';
 subset_param = 'main' ; % 'main' (for chosen flavor/proba) or 'supp' (for unchosen flavor/side)
 
 %- load the anova results and decoding results
@@ -371,7 +371,7 @@ set(gcf, 'Color', [1 1 1]);
 
 tab_s2 = [ar_comp tab_s2];
 
-% save('C:\Users\Fred\Dropbox\Rudebeck Lab\ANA-POTT-BehavPrefChange\POTT_sigUnits_name.mat','name_sig')
+% save('C:\Users\Fred\Dropbox\Rudebeck Lab\ANA-POTT-BehavPrefChange\data-final\neurons\POTT_sigUnits_name.mat','name_sig')
 
 grpstats(modeldata_pop,{'area' 'mk'},"numel")
 

@@ -5,7 +5,7 @@
 %- Related to: Stoll & Rudebeck, Neuron, 2024
 
 clear
-path2go = '/Users/fred/Dropbox/Rudebeck Lab/ANA-POTT-BehavPrefChange/data/neurons/subset-final/'; %- path where SPKpool files are!
+path2go = '/Users/fred/Dropbox/Rudebeck Lab/ANA-POTT-BehavPrefChange/data-final/neurons/'; %- path where SPKpool files are!
 
 measures = {'I_chosenjuice' 'I_chosenproba' 'I_unchosenproba'  'I_chosenside' 'I_chosenproba_juice' }
 name = {'perf_ju' 'perf_pb' 'perf_unpb' 'perf_si' 'perf_pb1' 'perf_pb2' }
@@ -43,8 +43,8 @@ for m = 1 : length(measures)
 end
 
 %- load behav
-behav = load('/Users/fred/Dropbox/Rudebeck Lab/ANA-POTT-BehavPrefChange/data/Morbier_behav_bins.mat','ALL','param')
-behav2 = load('/Users/fred/Dropbox/Rudebeck Lab/ANA-POTT-BehavPrefChange/data/Mimic_behav_bins.mat','ALL','param')
+behav = load('/Users/fred/Dropbox/Rudebeck Lab/ANA-POTT-BehavPrefChange/data-final/Morbier_behav_bins_final.mat','ALL','param')
+behav2 = load('/Users/fred/Dropbox/Rudebeck Lab/ANA-POTT-BehavPrefChange/data-final/Mimic_behav_bins_final.mat','ALL','param')
 ALL = [behav.ALL ; behav2.ALL]
 % pref_session = [ALL.pref];
 clear days

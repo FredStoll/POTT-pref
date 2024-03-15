@@ -14,7 +14,7 @@ clear
 monkey2run = {'M' 'X' 'B'}; % 'M', 'X', 'Both' ('Both' = combined)
 subsetNeurons = true;
 % path2go = '/home/fred/POTT/data/subset-final/'; %- path where SPKpool files are!
-path2go = '/Users/fred/Dropbox/Rudebeck Lab/ANA-POTT-BehavPrefChange/data/neurons/subset-final/'; %- path where SPKpool files are!
+path2go = '/Users/fred/Dropbox/Rudebeck Lab/ANA-POTT-BehavPrefChange/data-final/neurons/'; %- path where SPKpool files are!
 
 for mmm = 1 : length(monkey2run)
 
@@ -299,7 +299,7 @@ end
 %% POST HOC - COMBINED MONKEY - FULL DATASET (Fig S1)
 
 clear
-path2go = 'S:\POTT\data\subset-final\'; %- path where SPKpool files are!
+path2go = '/Users/fred/Dropbox/Rudebeck Lab/ANA-POTT-BehavPrefChange/data-final/neurons/'; %- path where SPKpool files are!
 load([path2go 'res_LDApop_kfold_final_283sessions.mat'])
 measures = {'I_chosenjuice' 'I_chosenproba' 'I_chosenside'};
 nbNeur = 500;
@@ -486,7 +486,7 @@ end
 
 clear
 
-path2go = 'S:\POTT\data\subset-final\'; %- path where SPKpool files are!
+path2go = '/Users/fred/Dropbox/Rudebeck Lab/ANA-POTT-BehavPrefChange/data-final/neurons/'; %- path where SPKpool files are!
 stim_1 = load([path2go 'res_LDApop_kfold_final_97sessions.mat'])
 stim_2 = load([path2go 'res_LDApop_kfold_final_186sessions.mat'])
 stim_all = load([path2go 'res_LDApop_kfold_final_283sessions.mat'])
@@ -566,7 +566,7 @@ end
 %% POSTHOC - SAME BUT FOR SUBSETS NOW
 
 clear
-path2go = 'S:\POTT\data\subset-final\'; %- path where SPKpool files are!
+path2go = '/Users/fred/Dropbox/Rudebeck Lab/ANA-POTT-BehavPrefChange/data-final/neurons/'; %- path where SPKpool files are!
 load([path2go 'res_LDApopsub_kfold_final_283sessions.mat'])
 measures = {'I_chosenside' 'I_unchosenproba' }
 %measures = {'P_side' 'P_proba'}
@@ -651,7 +651,7 @@ clear
 
 nbNeur = 50;
 
-path2go = 'S:\POTT\data\subset-final\'; %- path where SPKpool files are!
+path2go = '/Users/fred/Dropbox/Rudebeck Lab/ANA-POTT-BehavPrefChange/data-final/neurons/'; %- path where SPKpool files are!
 stim_1 = load([path2go 'res_LDApopsub_kfold_final_97sessions.mat'])
 stim_2 = load([path2go 'res_LDApopsub_kfold_final_186sessions.mat'])
 stim_all = load([path2go 'res_LDApopsub_kfold_final_283sessions.mat'])

@@ -7,8 +7,7 @@
 clear
 
 %- locate the files
-path2go = '/Users/fred/Dropbox/Rudebeck Lab/ANA-POTT-BehavPrefChange/data/';
-% path2go = 'C:\Users\Fred\Dropbox\Rudebeck Lab\ANA-POTT-BehavPrefChange\data\';
+path2go = '/Users/fred/Dropbox/Rudebeck Lab/ANA-POTT-BehavPrefChange/data-final/';
 
 skip = true; %- re-run the models or just run on saved models! 
 
@@ -70,10 +69,6 @@ end
 
 %% POTT - load models for behavioral analyses and Figures (1B/4A-C/5)
 
-%M1 = load([path2go 'Morbier_behav_bins.mat'],'ALL','param')
-%M2 = load([path2go 'Mimic_behav_bins.mat'],'ALL','param')
-%M1 = load([path2go 'Morbier_behav_bins_revision.mat'],'ALL','param')
-%M2 = load([path2go 'Mimic_behav_bins_revision.mat'],'ALL','param')
 M1 = load([path2go 'Morbier_behav_bins_final.mat'],'ALL','param')
 M2 = load([path2go 'Mimic_behav_bins_final.mat'],'ALL','param')
 
@@ -938,7 +933,7 @@ modeldata(modeldata.converge==0,:)=[];
 
 
 %- load juice names
-load('/Users/fred/Dropbox/Rudebeck Lab/ANA-POTT-BehavPrefChange/data/Juice_pairs.mat')
+load('/Users/fred/Dropbox/Rudebeck Lab/ANA-POTT-BehavPrefChange/data-final/POTT_Juice_pairs.mat')
 rmv = ismember(juice_pairs(:,2),'st');
 juice_pairs(rmv,:)=[];
 
@@ -1333,7 +1328,7 @@ end
 set(gca,'FontSize',16)
 %figure;histogram(ttt,[-.5:.05:.5])
 
-save('Pref_bins.mat','pref_ch_mk')
+save('C:\Users\Fred\Dropbox\Rudebeck Lab\ANA-POTT-BehavPrefChange\data-final\POTT_Pref_bins.mat','pref_ch_mk')
 
 for m = 1 : 2
     for s = 1 : length(pref_ch_mk{m}(:,1))
@@ -1466,4 +1461,5 @@ set(gca,'FontSize',16)
 %figure;histogram(ttt,[-.5:.05:.5])
 
 save('FT_bins.mat','pref_ch_mk')
+save('C:\Users\Fred\Dropbox\Rudebeck Lab\ANA-POTT-BehavPrefChange\data-final\POTT_FT_bins.mat','pref_ch_mk')
 

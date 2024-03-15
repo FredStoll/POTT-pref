@@ -6,7 +6,7 @@
 
 clear
 
-path2go = '/Users/fred/Dropbox/Rudebeck Lab/ANA-POTT-BehavPrefChange/data/neurons/subset-final/'; %- path where SPKpool files are!
+path2go = '/Users/fred/Dropbox/Rudebeck Lab/ANA-POTT-BehavPrefChange/data-final/neurons/'; %- path where SPKpool files are!
 list = dir([path2go '*a_SPKpool.mat']);
 
 param.predic = {'I_juice_by_chosenproba' }; %- select param you want to test..
@@ -33,8 +33,8 @@ util.meannorm  = @(data) (data-mean(data))/(max(data)-min(data));
 util.minnorm  = @(data) (data-min(min(data)))/(max(max(data))-min(min(data)));
 
 %- check if matrix already exists for each predictor
-if exist([path2go 'res_LDA_cross_revision2_final.mat'])==2
-    prev = load([path2go 'res_LDA_cross_revision2_final.mat']);
+if exist([path2go 'res_LDA_cross.mat'])==2
+    prev = load([path2go 'res_LDA_cross.mat']);
     done = [];
     for pr = 1 : length(param.predic)
         if isfield(prev.res_LDA,param.predic{pr})
@@ -313,6 +313,6 @@ if ~isempty(param.predic) %- if there is some predictors not done yet
         eval(['res_LDA.' param.predic{pr} '.param = param;'])
     end
     %- final save!
-    save([path2go 'res_LDA_cross_revision2_final.mat'],'res_LDA','list','area2test','path2go')
+    save([path2go 'res_LDA_cross.mat'],'res_LDA','list','area2test','path2go')
 end
 

@@ -1,4 +1,4 @@
-%% Main script for BEHAV analysis of the POTT dataset
+%% POTT Pref - Model comparison
 %-
 %-
 %- Author: Fred M. Stoll, Icahn School of Medicine at Mount Sinai, NY
@@ -7,8 +7,7 @@
 clear
 
 %- locate the files
-path2go = '/Users/fred/Dropbox/Rudebeck Lab/ANA-POTT-BehavPrefChange/data/';
-% path2go = 'C:\Users\Fred\Dropbox\Rudebeck Lab\ANA-POTT-BehavPrefChange\data\';
+path2go = '/Users/fred/Dropbox/Rudebeck Lab/ANA-POTT-BehavPrefChange/data-final/';
 
 skip = true; %- re-run the models or just run on saved models!
 % figure;
@@ -60,7 +59,7 @@ end
 
 clear
 %- locate the files
-path2go = '/Users/fred/Dropbox/Rudebeck Lab/ANA-POTT-BehavPrefChange/data/';
+path2go = '/Users/fred/Dropbox/Rudebeck Lab/ANA-POTT-BehavPrefChange/data-final/';
 
 M1 = load([path2go 'Morbier_behav_revision.mat'],'ALL','param')
 M2 = load([path2go 'Mimic_behav_revision.mat'],'ALL','param')

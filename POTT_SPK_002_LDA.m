@@ -6,7 +6,7 @@
 
 clear
 
-path2go = '/Users/fred/Dropbox/Rudebeck Lab/ANA-POTT-BehavPrefChange/data/neurons/subset-final/'; %- path where SPKpool files are!
+path2go = '/Users/fred/Dropbox/Rudebeck Lab/ANA-POTT-BehavPrefChange/data-final/neurons/'; %- path where SPKpool files are!
 list = dir([path2go '*a_SPKpool.mat']);
 
 param.predic = {'I_chosenjuice' 'I_chosenproba' 'I_unchosenproba' 'I_chosenproba_juice' 'I_chosenside'}; %- select param you want to test..

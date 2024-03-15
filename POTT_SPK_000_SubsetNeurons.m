@@ -6,8 +6,9 @@
 
 clear
 
-path2go = '/Users/fred/Dropbox/Rudebeck Lab/ANA-POTT-BehavPrefChange/data/neurons/subset-final/'
+path2go = '/Users/fred/Dropbox/Rudebeck Lab/ANA-POTT-BehavPrefChange/data-final/neurons/'
 list = dir([path2go 'M*a_SPKpool.mat']);
+%list = dir([path2go 'X*a_SPKpool.mat']);
 
 minSpacing = 0.075; %- XX mm spacing minimum or neuron not considered! 
 days = [];
@@ -48,21 +49,22 @@ for s = 1 : length(list)
 end
 
 size(keep_neurons,1)/(size(keep_neurons,1)+size(trash_neurons,1))
-save([path2go 'Morbier_diff_units_only_75um.mat'],'keep_neurons','minSpacing')
+save([path2go 'Morbier_diff_units_only.mat'],'keep_neurons','minSpacing')
+%save([path2go 'Mimic_diff_units_only.mat'],'keep_neurons','minSpacing')
 
 %% Number of turns per day/monkeys
 
 clear 
-path2go = '/Users/fred/Dropbox/Rudebeck Lab/ANA-POTT-BehavPrefChange/data/neurons/subset-final/'
+path2go = '/Users/fred/Dropbox/Rudebeck Lab/ANA-POTT-BehavPrefChange/data-final/neurons/'
 list = dir([path2go 'M*a_SPKpool.mat']);
 list = dir([path2go 'X*a_SPKpool.mat']);
 for i = 1 : length(list)
     days{i} = list(i).name(2:7);
 end
 
-d1 = load('C:\Users\Fred\Dropbox\Rudebeck Lab\SCRIPTS\POTT_RECORDINGS\Mimic_ElecLocations_Drive2_postHisto.mat')
-d2 = load('C:\Users\Fred\Dropbox\Rudebeck Lab\SCRIPTS\POTT_RECORDINGS\Mimic_ElecLocations_postHisto.mat')
-d3 = load('C:\Users\Fred\Dropbox\Rudebeck Lab\SCRIPTS\POTT_RECORDINGS\Morbier_ElecLocations_postHisto.mat')
+d1 = load([path2go 'Mimic_ElecLocations_Drive2_postHisto.mat'])
+d2 = load([path2go 'Mimic_ElecLocations_postHisto.mat'])
+d3 = load([path2go 'Morbier_ElecLocations_postHisto.mat'])
 LOC = [d1.LOC ; d2.LOC ; d3.LOC]
 TIME = [d1.TIME ; d2.TIME ; d3.TIME]
 
